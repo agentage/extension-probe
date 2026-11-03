@@ -14,7 +14,7 @@ test('/health on loopback is the kit envelope with the build commit', async ({ r
   expect(res.headers()['cache-control']).toBe('no-store');
   const { data } = HealthSchema.parse(await res.json());
   expect(data).toMatchObject({ status: 'ok', extension: 'probe', part: 'api', version });
-  const commit = process.env['COMMIT_SHA'];
+  const commit = process.env.COMMIT_SHA;
   if (commit) expect(data.commit).toBe(commit);
 });
 
