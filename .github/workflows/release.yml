@@ -103,7 +103,7 @@ jobs:
       - name: Upgrade npm
         run: npm install -g npm@latest && npm --version # OIDC needs npm >= 11.5.1
 
-      - name: TEMPORARY - token for the first publish of a new name (delete once trusted publishing is configured)
+      - name: TEMPORARY - token for the first (staged) publish of a new name (delete once trusted publishing is configured)
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
@@ -122,4 +122,4 @@ jobs:
             echo "${name}@${version} is already on npm"
             exit 0
           fi
-          npm publish --access public --provenance
+          if [ -n "${NPM_TOKEN:-}" ]; then npm stage publish --access public --provenance; else npm publish --access public --provenance; fi
