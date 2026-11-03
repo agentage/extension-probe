@@ -2,7 +2,7 @@ name: Release
 
 # A v* tag: the kit tool builds and pushes one image per part to GHCR, the build record with the
 # digests becomes the release asset agentage-extension.json, then the package is published to npm
-# with OIDC trusted publishing (npmjs.com trusted publisher = this file). No NPM_TOKEN anywhere.
+# with OIDC trusted publishing (npmjs.com trusted publisher = this file).
 on:
   push:
     tags: ['v*']
@@ -15,11 +15,6 @@ permissions:
   contents: write
   packages: write
   id-token: write
-
-env:
-  # TEMPORARY until @agentage/extension and @agentage/cli 0.41 are on npm: the kit and its build
-  # tool come from agentage/platform at this commit. Delete with scripts/kit-lock.mjs.
-  PLATFORM_SHA: fa647efa986cf481ea31c8a2ed4531b77b2ae955
 
 jobs:
   release:
@@ -38,33 +33,6 @@ jobs:
       - name: The tag is the package version
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
 
-      - name: Where the kit and the tool come from
-        id: kit
-        run: |
-          kit=$(npm view '@agentage/extension@0.1.0' version 2>/dev/null || true)
-          cli=$(npm view '@agentage/cli@^0.41' version 2>/dev/null | tail -1 || true)
-          echo "kit-on-npm=$([ -n "$kit" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          echo "cli-on-npm=$([ -n "$cli" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-
-      - name: TEMPORARY - checkout agentage/platform at the pinned commit
-        if: steps.kit.outputs.kit-on-npm != 'true' || steps.kit.outputs.cli-on-npm != 'true'
-        uses: actions/checkout@v7
-        with:
-          repository: agentage/platform
-          ref: ${{ env.PLATFORM_SHA }}
-          path: .platform
-
-      - name: TEMPORARY - build the kit from the platform checkout
-        if: steps.kit.outputs.kit-on-npm != 'true' || steps.kit.outputs.cli-on-npm != 'true'
-        working-directory: .platform
-        run: |
-          npm ci && npm run build
-          mkdir -p ../.kit && npm pack -w @agentage/extension --pack-destination ../.kit
-
-      - name: TEMPORARY - point the lockfile at the packed kit
-        if: steps.kit.outputs.kit-on-npm != 'true'
-        run: node scripts/kit-lock.mjs local .kit/agentage-extension-0.1.0.tgz
-
       - name: Install
         run: npm ci
 
@@ -78,10 +46,11 @@ jobs:
 
       - name: Build and push the images, write the record
         run: |
-          if [ "${{ steps.kit.outputs.cli-on-npm }}" = "true" ]; then
+          # TEMPORARY: the kit's own tool until cli 0.41 (agentage extension build) is on npm
+          if npm view '@agentage/cli@^0.41' version >/dev/null 2>&1; then
             npx --yes @agentage/cli@^0.41 extension build --push
           else
-            node .platform/packages/extension/dist/tool/cli.js build --push # TEMPORARY fallback
+            node node_modules/@agentage/extension/dist/tool/cli.js build --push
           fi
           cat dist/agentage-extension.json
 
@@ -96,26 +65,18 @@ jobs:
               --title "$GITHUB_REF_NAME" --notes "Images by digest: agentage-extension.json"
           fi
 
-      - name: TEMPORARY - publish with the registry range, never the local tarball
-        if: steps.kit.outputs.kit-on-npm != 'true'
-        run: node scripts/kit-lock.mjs registry
-
       - name: Upgrade npm
         run: npm install -g npm@latest && npm --version # OIDC needs npm >= 11.5.1
 
-      - name: TEMPORARY - token for the first (staged) publish of a new name (delete once trusted publishing is configured)
+      - name: Publish to npm (skips a version already published)
         env:
+          # TEMPORARY: stages the first publish of a new name; delete once @agentage/widget is on npm
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -n "${NPM_TOKEN}" ]; then
+          if [ -n "${NPM_TOKEN:-}" ]; then
             echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> ~/.npmrc
             echo "first-publish token in use" >> "$GITHUB_STEP_SUMMARY"
           fi
-
-      - name: Publish to npm (skips a version already published)
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
           name=$(node -p "require('./package.json').name")
           version=$(node -p "require('./package.json').version")
           if npm view "${name}@${version}" version >/dev/null 2>&1; then

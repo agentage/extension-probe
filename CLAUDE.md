@@ -15,12 +15,8 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 
 ## Commands
 
-- `npm run verify`; the kit tool: `agentage extension build [--push]`, or from a platform checkout
-  `node ../platform/packages/extension/dist/tool/cli.js build --dir .`
-
-## TEMPORARY until the kit and the cli 0.41 are on npm
-
-- `scripts/kit-lock.mjs local <tgz>` points `@agentage/extension` at a packed kit, `registry`
-  points it back; the committed `package.json` and lockfile always hold the registry form.
-- `ci.yml` and `release.yml` check out agentage/platform at `PLATFORM_SHA` when the packages are
-  not on npm. Remove the steps marked TEMPORARY and this section once both are published.
+- `npm run verify`; `npm run test:e2e` is the Playwright smoke (`e2e/`), hermetic by default,
+  against a running image with `PROBE_BASE_URL` (CI does this after building the image)
+- the kit tool: `agentage extension build [--push]`; until cli 0.41 is on npm,
+  `node node_modules/@agentage/extension/dist/tool/cli.js build` (the TEMPORARY branch in both
+  workflows; delete it once cli 0.41 is published)
