@@ -7,21 +7,27 @@ code is only `create(ctx)` in [`src/api/index.ts`](src/api/index.ts); the kit
 [`@agentage/extension`](https://github.com/agentage/platform) owns the server, `/health`, the
 discovery document and the envelope. There is no Dockerfile: the kit's build tool builds the image.
 
-## Install
+## Install and run
+
+Needs Node 22+; Docker only for the image.
 
 ```bash
 npm ci
 npm run build
+PORT=3000 node node_modules/@agentage/extension/dist/runtime/main.js api   # what the image runs
+curl -s '127.0.0.1:3000/api/v1/echo?msg=hi'
+curl -s 127.0.0.1:3000/health                    # loopback only; commit is zeros outside an image
+curl -s 127.0.0.1:3000/.well-known/agentage-extension.json
 ```
 
-## Run the image locally
+## Run the image
 
 ```bash
 node node_modules/@agentage/extension/dist/tool/cli.js build   # or: agentage extension build
-docker run --rm --network host ghcr.io/agentage/probe-api:0.1.0
-curl -s 127.0.0.1:3000/health                     # loopback only; commit = the build commit
+docker run -d --name probe-api -p 3000:3000 ghcr.io/agentage/probe-api:0.1.0
 curl -s '127.0.0.1:3000/api/v1/echo?msg=hi'
-curl -s 127.0.0.1:3000/.well-known/agentage-extension.json
+docker exec probe-api wget -qO- 127.0.0.1:3000/health   # 404 through -p: /health is loopback only
+docker rm -f probe-api
 ```
 
 ## Verify
@@ -29,7 +35,7 @@ curl -s 127.0.0.1:3000/.well-known/agentage-extension.json
 ```bash
 npm run verify
 npm run test:e2e   # smoke: boots dist/ with the kit's image entry, no secrets
-PROBE_BASE_URL=http://127.0.0.1:3000 npm run test:e2e   # the same suite against a running image
+PROBE_BASE_URL=http://127.0.0.1:3000 npm run test:e2e   # against an image run with --network host
 ```
 
 ## Release
