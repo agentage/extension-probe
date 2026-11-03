@@ -19,7 +19,7 @@ permissions:
 env:
   # TEMPORARY until @agentage/extension and @agentage/cli 0.41 are on npm: the kit and its build
   # tool come from agentage/platform at this commit. Delete with scripts/kit-lock.mjs.
-  PLATFORM_SHA: 2f76162436a2aa357889eb9f22e58f530916ed93
+  PLATFORM_SHA: 6f8cc9b9bc022f48d76b0d542760f858ad5a3674
 
 jobs:
   release:
