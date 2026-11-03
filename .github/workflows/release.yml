@@ -57,7 +57,9 @@ jobs:
       - name: TEMPORARY - build the kit from the platform checkout
         if: steps.kit.outputs.kit-on-npm != 'true' || steps.kit.outputs.cli-on-npm != 'true'
         working-directory: .platform
-        run: npm ci && npm run build && npm pack -w @agentage/extension --pack-destination ../.kit
+        run: |
+          npm ci && npm run build
+          mkdir -p ../.kit && npm pack -w @agentage/extension --pack-destination ../.kit
 
       - name: TEMPORARY - point the lockfile at the packed kit
         if: steps.kit.outputs.kit-on-npm != 'true'
