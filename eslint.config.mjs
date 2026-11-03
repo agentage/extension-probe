@@ -8,7 +8,7 @@ export default [
     ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'test-results/**'],
   },
   {
-    files: ['src/**/*.ts', 'e2e/**/*.ts', '*.ts'],
+    files: ['src/**/*.ts', 'e2e/**/*.ts', 'scripts/**/*.ts', '*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

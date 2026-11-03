@@ -37,4 +37,6 @@ PROBE_BASE_URL=http://127.0.0.1:3000 npm run test:e2e   # the same suite against
 A `v*` tag equal to the `package.json` version runs `.github/workflows/release.yml`: it builds and
 pushes `ghcr.io/agentage/probe-api:{version}`, attaches the build record with the image digests to
 the GitHub release as `agentage-extension.json`, and publishes `@agentage/extension-probe` to npm
-with provenance.
+with provenance. A version's images never change: a re-run keeps the released images and record
+and only retries npm, and a tag moved to another commit is refused (`scripts/release-guard.sh`);
+a fix ships as a new version.
