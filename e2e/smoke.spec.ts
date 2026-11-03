@@ -12,6 +12,7 @@ test('/health on loopback is the kit envelope with the build commit', async ({ r
   const res = await request.get('/health');
   expect(res.status()).toBe(200);
   expect(res.headers()['cache-control']).toBe('no-store');
+  expect(res.headers()['agcid']).toMatch(AGCID);
   const { data } = HealthSchema.parse(await res.json());
   expect(data).toMatchObject({ status: 'ok', extension: 'probe', part: 'api', version });
   const commit = process.env.COMMIT_SHA;
@@ -41,7 +42,9 @@ for (const path of ['/api/v1/nope', '/api/', '/mcp/x', '/']) {
   test(`a miss at ${path} is the NOT_FOUND envelope`, async ({ request }) => {
     const res = await request.get(path);
     expect(res.status()).toBe(404);
-    expect(ErrorEnvelopeSchema.parse(await res.json()).error.code).toBe('NOT_FOUND');
+    const { error } = ErrorEnvelopeSchema.parse(await res.json());
+    expect(error.code).toBe('NOT_FOUND');
+    expect(res.headers()['agcid']).toBe(error.agcid);
   });
 }
 
@@ -51,6 +54,7 @@ test('discovery is public and names the image of this version', async ({ request
   });
   expect(res.status()).toBe(200);
   expect(res.headers()['access-control-allow-origin']).toBe('*');
+  expect(res.headers()['agcid']).toMatch(AGCID);
   expect(await res.json()).toMatchObject({
     id: 'probe',
     version,
@@ -64,6 +68,7 @@ test('/api/ answers a CORS preflight without credentials', async ({ request }) =
     headers: { origin: 'https://any.example', 'access-control-request-method': 'GET' },
   });
   expect(res.status()).toBe(204);
+  expect(res.headers()['agcid']).toMatch(AGCID);
   expect(res.headers()['access-control-allow-origin']).toBe('*');
   expect(res.headers()['access-control-allow-credentials']).toBeUndefined();
 });
