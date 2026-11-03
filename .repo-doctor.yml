@@ -1,0 +1,9 @@
+# repo-doctor config for this repo; schema in agentage/automation scripts/repo-doctor/README.md.
+class: express-service
+waive:
+  - id: cicd-no-npm-token
+    reason: 'temporary first-publish token for a new npm name; removed once @agentage/widget is on npm'
+  - id: rb-published-files
+    reason: 'tag-driven release in feature 1; prepare-release.yml arrives with the release loop (feature 2)'
+  - id: obs-kit
+    reason: 'the extension kit owns the server, logs and /health (sealing); telemetry shipping lands in the kit'

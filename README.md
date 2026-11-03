@@ -14,18 +14,10 @@ npm ci
 npm run build
 ```
 
-Until `@agentage/extension` is on npm, install it from a packed kit (see `scripts/kit-lock.mjs`):
-
-```bash
-(cd ../platform && npm ci && npm run build && npm pack -w @agentage/extension --pack-destination ../extension-probe/.kit)
-node scripts/kit-lock.mjs local .kit/agentage-extension-0.1.0.tgz && npm ci
-node scripts/kit-lock.mjs registry   # before committing
-```
-
 ## Run the image locally
 
 ```bash
-node ../platform/packages/extension/dist/tool/cli.js build     # or: agentage extension build
+node node_modules/@agentage/extension/dist/tool/cli.js build   # or: agentage extension build
 docker run --rm --network host ghcr.io/agentage/probe-api:0.1.0
 curl -s 127.0.0.1:3000/health                     # loopback only; commit = the build commit
 curl -s '127.0.0.1:3000/api/v1/echo?msg=hi'
@@ -36,6 +28,8 @@ curl -s 127.0.0.1:3000/.well-known/agentage-extension.json
 
 ```bash
 npm run verify
+npm run test:e2e   # smoke: boots dist/ with the kit's image entry, no secrets
+PROBE_BASE_URL=http://127.0.0.1:3000 npm run test:e2e   # the same suite against a running image
 ```
 
 ## Release
