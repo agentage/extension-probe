@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+*.log
+.DS_Store
+.env
+.env.local
+# TEMPORARY until @agentage/extension is on npm: the local kit tarball and the platform checkout
+.kit/
+.platform/
