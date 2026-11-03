@@ -85,6 +85,7 @@ jobs:
           # TEMPORARY: stages the first publish of a new name; delete once @agentage/widget is on npm
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          set -euo pipefail
           if [ -n "${NPM_TOKEN:-}" ]; then
             echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> ~/.npmrc
             echo "first-publish token in use" >> "$GITHUB_STEP_SUMMARY"
@@ -95,4 +96,5 @@ jobs:
             echo "${name}@${version} is already on npm"
             exit 0
           fi
-          if [ -n "${NPM_TOKEN:-}" ]; then npm stage publish --access public --provenance; else npm publish --access public --provenance; fi
+          if [ -n "${NPM_TOKEN:-}" ] && ! npm view "${name}" name >/dev/null 2>&1; then npm stage publish --access public --provenance; else npm publish --access public --provenance; fi
+          echo "published ${name}@${version}" >> "$GITHUB_STEP_SUMMARY"
