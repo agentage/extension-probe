@@ -1,0 +1,73 @@
+{
+  "name": "@agentage/extension-probe",
+  "version": "0.1.0",
+  "description": "The probe extension: one of every agentage part kind, the template every later extension copies",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agentage/extension-probe.git"
+  },
+  "homepage": "https://agentage.io",
+  "bugs": {
+    "url": "https://github.com/agentage/extension-probe/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22",
+    "agentage": "^0.1"
+  },
+  "agentage": {
+    "id": "probe",
+    "parts": {
+      "api": true
+    }
+  },
+  "exports": {
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "default": "./dist/api/index.js"
+    },
+    "./agentage-extension.json": "./dist/agentage-extension.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.test.*"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "verify": "npm run type-check && npm run lint && npm run format:check && npm run test:coverage && npm run build",
+    "prepublishOnly": "npm run verify"
+  },
+  "dependencies": {
+    "@agentage/extension": "^0.1.0",
+    "express": "^5.1.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "26.6.5",
+    "@typescript-eslint/eslint-plugin": "8.72.1",
+    "@typescript-eslint/parser": "8.72.1",
+    "@vitest/coverage-v8": "5.0.5",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.7",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5"
+  },
+  "keywords": [
+    "agentage",
+    "agentage-extension"
+  ]
+}
