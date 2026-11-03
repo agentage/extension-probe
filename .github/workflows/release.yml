@@ -2,7 +2,8 @@ name: Release
 
 # A v* tag: the kit tool builds and pushes one image per part to GHCR, the build record with the
 # digests becomes the release asset agentage-extension.json, then the package is published to npm
-# with OIDC trusted publishing (npmjs.com trusted publisher = this file).
+# with OIDC trusted publishing (npmjs.com trusted publisher = this file). A re-run of a released
+# version keeps its images and record and only retries npm (scripts/release-guard.sh).
 on:
   push:
     tags: ['v*']
@@ -44,7 +45,17 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+      - name: A released version is never rebuilt
+        id: guard
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          decision=$(scripts/release-guard.sh "$GITHUB_REF_NAME" "$GITHUB_SHA")
+          echo "decision=$decision" >> "$GITHUB_OUTPUT"
+          echo "release guard: $decision" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Build and push the images, write the record
+        if: steps.guard.outputs.decision == 'build'
         run: |
           # TEMPORARY: the kit's own tool until cli 0.41 (agentage extension build) is on npm
           if npm view '@agentage/cli@^0.41' version >/dev/null 2>&1; then
@@ -55,11 +66,12 @@ jobs:
           cat dist/agentage-extension.json
 
       - name: Release asset agentage-extension.json
+        if: steps.guard.outputs.decision == 'build'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" dist/agentage-extension.json --clobber
+            gh release upload "$GITHUB_REF_NAME" dist/agentage-extension.json
           else
             gh release create "$GITHUB_REF_NAME" dist/agentage-extension.json \
               --title "$GITHUB_REF_NAME" --notes "Images by digest: agentage-extension.json"
@@ -73,6 +85,7 @@ jobs:
           # TEMPORARY: stages the first publish of a new name; delete once @agentage/widget is on npm
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          set -euo pipefail
           if [ -n "${NPM_TOKEN:-}" ]; then
             echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> ~/.npmrc
             echo "first-publish token in use" >> "$GITHUB_STEP_SUMMARY"
@@ -83,4 +96,5 @@ jobs:
             echo "${name}@${version} is already on npm"
             exit 0
           fi
-          if [ -n "${NPM_TOKEN:-}" ]; then npm stage publish --access public --provenance; else npm publish --access public --provenance; fi
+          if [ -n "${NPM_TOKEN:-}" ] && ! npm view "${name}" name >/dev/null 2>&1; then npm stage publish --access public --provenance; else npm publish --access public --provenance; fi
+          echo "published ${name}@${version}" >> "$GITHUB_STEP_SUMMARY"

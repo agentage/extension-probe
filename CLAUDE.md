@@ -11,7 +11,9 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 - No Dockerfile, no compose file: the kit tool builds `ghcr.io/agentage/probe-{part}:{version}`.
 - The manifest is the `agentage` block of `package.json`; parts not built yet stay out of it.
 - The release record `dist/agentage-extension.json` (images by digest) is written by
-  `build --push` only, in `release.yml`; never by hand, never committed.
+  `build --push` only, in `release.yml`; never by hand, never committed. The estate deploys from
+  the release asset, so `scripts/release-guard.sh` keeps a released version's images and record:
+  never move a `v*` tag, release a new version.
 
 ## Commands
 

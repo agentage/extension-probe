@@ -2,13 +2,14 @@ import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import playwrightPlugin from 'eslint-plugin-playwright';
 
 export default [
   {
     ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'test-results/**'],
   },
   {
-    files: ['src/**/*.ts', 'e2e/**/*.ts', '*.ts'],
+    files: ['src/**/*.ts', 'e2e/**/*.ts', 'scripts/**/*.ts', '*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -46,6 +47,14 @@ export default [
       'prefer-arrow-callback': 'error',
       'arrow-body-style': ['error', 'as-needed'],
       'no-var': 'error',
+    },
+  },
+  {
+    files: ['e2e/**/*.ts'],
+    plugins: { playwright: playwrightPlugin },
+    rules: {
+      'playwright/missing-playwright-await': 'error',
+      'playwright/no-force-option': 'error',
     },
   },
 ];
