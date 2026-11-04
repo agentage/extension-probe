@@ -26,10 +26,6 @@
     }
   },
   "exports": {
-    "./api": {
-      "types": "./dist/api/index.d.ts",
-      "default": "./dist/api/index.js"
-    },
     "./agentage-extension.json": "./dist/agentage-extension.json",
     "./package.json": "./package.json"
   },
