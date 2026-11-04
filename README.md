@@ -35,7 +35,9 @@ docker rm -f probe-api
 ```bash
 npm run verify
 npm run test:e2e   # smoke: boots dist/ with the kit's image entry, no secrets
-PROBE_BASE_URL=http://127.0.0.1:3000 npm run test:e2e   # against an image run with --network host
+docker run -d --name probe-api --network host ghcr.io/agentage/probe-api:0.1.0
+COMMIT_SHA=$(git rev-parse HEAD) PROBE_BASE_URL=http://127.0.0.1:3000 npm run test:e2e   # the image
+docker rm -f probe-api
 ```
 
 ## Release

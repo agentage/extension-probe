@@ -22,6 +22,11 @@ describe('probe manifest', () => {
     expect(Object.keys(api)).toEqual(['create']);
   });
 
+  it('the package exports no part code, so no extension can import another', () => {
+    const { exports } = pkg as { exports: Record<string, unknown> };
+    expect(Object.keys(exports)).toEqual(['./agentage-extension.json', './package.json']);
+  });
+
   it('part code is sealed: no listen(), process.env or argv, no absolute agentage URL', () => {
     const sealing = /\.listen\(|process\.(env|argv)|https?:\/\/[^'"`\s]*agentage\.io/;
     expect(partSources().filter(([, text]) => sealing.test(text))).toEqual([]);
