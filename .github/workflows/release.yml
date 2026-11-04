@@ -32,7 +32,12 @@ jobs:
           cache: 'npm'
 
       - name: The tag is the package version
-        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME is not v$version, the package.json version; tag the commit that sets it"
+            exit 1
+          fi
 
       - name: Install
         run: npm ci
@@ -87,6 +92,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "${NPM_TOKEN:-}" ]; then
+            # Single quotes on purpose: npm expands ${NPM_TOKEN} itself, the token never lands on disk
             echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> ~/.npmrc
             echo "first-publish token in use" >> "$GITHUB_STEP_SUMMARY"
           fi
