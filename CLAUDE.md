@@ -18,7 +18,8 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 ## Commands
 
 - `npm run verify`; `npm run test:e2e` is the Playwright smoke (`e2e/`), hermetic by default,
-  against a running image with `PROBE_BASE_URL` (CI does this after building the image)
+  against a running image with `PROBE_BASE_URL` and the `COMMIT_SHA` it was built from (CI does
+  this after building the image)
 - the kit tool: `agentage extension build [--push]`; until cli 0.41 is on npm,
   `node node_modules/@agentage/extension/dist/tool/cli.js build` (the TEMPORARY branch in both
   workflows; delete it once cli 0.41 is published)
