@@ -1,6 +1,6 @@
 {
   "name": "@agentage/extension-probe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The probe extension: one of every agentage part kind, the template every later extension copies",
   "type": "module",
   "license": "MIT",
@@ -17,12 +17,41 @@
   },
   "engines": {
     "node": ">=22",
-    "agentage": "^0.1"
+    "agentage": "^0.2"
   },
   "agentage": {
     "id": "probe",
     "parts": {
-      "api": true
+      "pages": true,
+      "ui": true,
+      "api": true,
+      "mcp": true,
+      "worker": true,
+      "cli": true,
+      "store": "postgres"
+    },
+    "commands": [
+      {
+        "name": "ping",
+        "summary": "answer pong",
+        "args": [
+          {
+            "name": "msg",
+            "type": "string",
+            "optional": true
+          }
+        ]
+      }
+    ],
+    "settings": {
+      "mcp.listing": {
+        "type": "string",
+        "enum": [
+          "open",
+          "token"
+        ],
+        "default": "open"
+      }
     }
   },
   "exports": {
@@ -31,10 +60,11 @@
   },
   "files": [
     "dist",
+    "migrations",
     "!dist/**/*.test.*"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && agentage-widget bundle",
     "type-check": "tsc --noEmit -p tsconfig.eslint.json",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -46,14 +76,17 @@
     "prepublishOnly": "npm run verify"
   },
   "dependencies": {
-    "@agentage/extension": "^0.1.0",
+    "@agentage/extension": "^0.2.0",
     "express": "^5.1.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
+    "@agentage/widget": "^0.1.0",
+    "@electric-sql/pglite": "0.5.15",
     "@playwright/test": "1.64.1",
     "@types/express": "5.0.6",
     "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
     "@vitest/coverage-v8": "5.0.5",
@@ -62,6 +95,8 @@
     "eslint-plugin-playwright": "2.12.2",
     "eslint-plugin-prettier": "5.5.7",
     "prettier": "3.9.10",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "typescript": "6.0.3",
     "vitest": "5.0.5"
   },

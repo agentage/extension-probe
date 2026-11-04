@@ -1,0 +1,264 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "probe",
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/api/v1/echo": {
+      "get": {
+        "operationId": "echo",
+        "security": [],
+        "parameters": [
+          {
+            "name": "msg",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "msg": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["msg"]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": ["success", "data"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_ERROR",
+                            "UNAUTHORIZED",
+                            "FORBIDDEN",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "PRECONDITION_FAILED",
+                            "PAYLOAD_TOO_LARGE",
+                            "RATE_LIMITED",
+                            "INTERNAL",
+                            "UNAVAILABLE"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "agcid": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["field", "message"],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "agcid"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["success", "error"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ticks": {
+      "get": {
+        "operationId": "ticks",
+        "security": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{1,19}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "job": {
+                            "type": "string"
+                          },
+                          "tickedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                          }
+                        },
+                        "required": ["id", "job", "tickedAt"]
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": ["success", "data"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_ERROR",
+                            "UNAUTHORIZED",
+                            "FORBIDDEN",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "PRECONDITION_FAILED",
+                            "PAYLOAD_TOO_LARGE",
+                            "RATE_LIMITED",
+                            "INTERNAL",
+                            "UNAVAILABLE"
+                          ]
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "agcid": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["field", "message"],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "agcid"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["success", "error"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
