@@ -37,7 +37,8 @@ jobs:
   local:
     name: up and the e2e gate on local
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # The gate on local stays under 10 minutes (about 2 on 2026-11-05); slower is a regression.
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -85,6 +86,14 @@ jobs:
         env:
           PROBE_DIR: ${{ github.workspace }}
         run: npm run e2e -- probe gate local
+
+      # A gate that skipped itself is not green: 45 executed with PROBE_DIR on 2026-11-05.
+      - name: Assert the gate was not vacuous
+        if: github.actor != 'dependabot[bot]'
+        working-directory: e2e-suite
+        env:
+          MIN_EXECUTED: '45'
+        run: node scripts/assert-executed.mjs
 
       - name: Logs on failure
         if: failure()

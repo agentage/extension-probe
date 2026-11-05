@@ -4,7 +4,8 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: '.',
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // No retries: a flake is a bug to fix at its cause, never a second chance.
+  retries: 0,
   reporter: [['list']],
   use: {
     baseURL: process.env.PROBE_BASE_URL ?? 'http://localhost:4280',
