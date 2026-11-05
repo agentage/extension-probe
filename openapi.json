@@ -2,13 +2,25 @@
   "openapi": "3.1.0",
   "info": {
     "title": "probe",
-    "version": "0.2.1"
+    "version": "0.3.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "pat": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
   },
   "paths": {
     "/api/v1/echo": {
       "get": {
         "operationId": "echo",
-        "security": [],
+        "security": [
+          {
+            "pat": ["probe:read"]
+          }
+        ],
         "parameters": [
           {
             "name": "msg",
@@ -38,9 +50,12 @@
                       "properties": {
                         "msg": {
                           "type": "string"
+                        },
+                        "caller": {
+                          "type": "string"
                         }
                       },
-                      "required": ["msg"]
+                      "required": ["msg", "caller"]
                     },
                     "meta": {
                       "type": "object",

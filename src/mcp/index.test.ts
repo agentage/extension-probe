@@ -35,6 +35,12 @@ describe('probe.mcpc.json', () => {
 });
 
 describe('probe__echo', () => {
+  it('needs probe:read: the scope it declares beside its schemas (C7)', () => {
+    const recorded = createTestContext({ extension: { id: 'probe' } });
+    create(recorded);
+    expect(recorded.tools.map(({ name, spec }) => [name, spec.scope])).toEqual([['echo', 'read']]);
+  });
+
   it('answers pong and the message', async () => {
     const res = await server.fetch('/mcp', {
       method: 'POST',

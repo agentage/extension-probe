@@ -8,7 +8,7 @@ export const create = (ctx: PartContext): Router => {
   const router = Router();
   router.get('/echo', (req, res) => {
     const { msg } = parse(EchoQuerySchema, req.query, 'Invalid query');
-    res.json(ok({ msg }));
+    res.json(ok({ msg, caller: ctx.auth.caller(req)?.sub }));
   });
   router.get('/ticks', async (req, res) => {
     const query = parse(TicksQuerySchema, req.query, 'Invalid query');

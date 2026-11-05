@@ -58,13 +58,15 @@ const TickSchema = z.object({ id: z.string(), job: z.string(), tickedAt: z.iso.d
 const generated = () => ({
   openapi: '3.1.0',
   info: { title: 'probe', version },
+  // C6: the only place a route names its scope; the kit asks for it before the route runs.
+  components: { securitySchemes: { pat: { type: 'http', scheme: 'bearer' } } },
   paths: {
     '/api/v1/echo': {
       get: {
         operationId: 'echo',
-        security: [],
+        security: [{ pat: ['probe:read'] }],
         parameters: parameters(EchoQuerySchema),
-        responses: { '200': ok(z.object({ msg: z.string() })), '400': invalid },
+        responses: { '200': ok(z.object({ msg: z.string(), caller: z.string() })), '400': invalid },
       },
     },
     '/api/v1/ticks': {
