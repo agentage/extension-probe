@@ -24,7 +24,7 @@ Needs Node 22+, npm 10+, Docker, `git` and `jq`. On a clean machine, from nothin
 git clone https://github.com/agentage/extension-probe && cd extension-probe
 npm ci                                   # the cli comes with it: npx agentage is the lockfile's
 npx agentage extension up                # last line: ready    7 parts healthy
-open http://localhost:4280/ui/0.2.0/harness.html   # click ping: pong hi
+open "http://localhost:4280/ui/$(jq -r .version package.json)/harness.html"   # ping: pong hi
 curl -s localhost:4280/.well-known/agentage-extension.json
 npx agentage extension token --scope probe:read    # aga_... from the dev issuer on localhost:4281
 npx agentage extension install .         # linked     @agentage/extension-probe (working copy)
