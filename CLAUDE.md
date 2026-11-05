@@ -24,7 +24,7 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 ## Commands
 
 - `npm run verify`; `agentage extension up`, then `scripts/image-smoke.sh <commit>` and
-  `npm run test:e2e` (the Playwright smoke through `localhost:4280`)
+  `npm run test:e2e` (the Playwright smoke and the widget axe test through `localhost:4280`)
 - until cli 0.41 is on npm, the kit's own tool: `node node_modules/@agentage/extension/dist/tool/cli.js
 build|up|down|token` (the TEMPORARY branch in both workflows; delete it once cli 0.41 is published)
 - to try an unreleased kit or widget: `npm pack` them from agentage/platform into `.kit/`

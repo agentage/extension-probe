@@ -47,8 +47,10 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Install
-        run: npm ci
+      - name: Install (and Chromium for the widget test)
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
 
       # agentage/e2e is private (the org PAT_TOKEN reads it); Dependabot runs get no secrets.
       - name: Checkout agentage/e2e
@@ -60,11 +62,11 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           persist-credentials: false
 
-      - name: Install agentage/e2e and Chromium
+      - name: Install agentage/e2e
         if: github.actor != 'dependabot[bot]'
         run: |
           npm ci --prefix e2e-suite --no-audit --no-fund
-          npx --prefix e2e-suite playwright install --with-deps chromium
+          npx --prefix e2e-suite playwright install chromium
 
       - name: agentage extension up (the release recipes, store, dev issuer, gateway)
         run: |
@@ -78,7 +80,7 @@ jobs:
       - name: Image smoke (each part carries this commit, /health ok on loopback)
         run: scripts/image-smoke.sh "$GITHUB_SHA"
 
-      - name: Smoke through the local gateway (e2e/smoke.spec.ts)
+      - name: Smoke and the widget a11y test through the local gateway (e2e/)
         run: npm run test:e2e
 
       - name: e2e gate on local (agentage/e2e, probe gate local)
