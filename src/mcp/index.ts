@@ -7,6 +7,7 @@ export function create(ctx: McpContext) {
     'echo',
     {
       description: 'Echo a message back',
+      scope: 'read',
       input: z.object({ msg: z.string().max(200) }),
       output: z.object({ msg: z.string() }),
     },

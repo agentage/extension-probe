@@ -6,15 +6,15 @@ extension copies. Each part is only `create(ctx)` (the ui part a `widgets` map);
 discovery, the envelope, the store connection, the scheduler and the command line. There is no
 Dockerfile and no compose file: the kit's tool builds one image per part and runs them locally.
 
-| Part   | Source                                                                    | Serves                                                                          |
-| ------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| pages  | [`src/pages`](src/pages/index.ts)                                         | `/`: `probe {version} · {commit}`                                               |
-| ui     | [`src/ui`](src/ui/index.ts) (`<probe-echo>`, React on `@agentage/widget`) | `/ui/{version}/probe.js`, `harness.html`                                        |
-| api    | [`src/api`](src/api/index.ts)                                             | `GET /api/v1/echo?msg=`, `GET /api/v1/ticks?limit=&cursor=`, `openapi.json`     |
-| mcp    | [`src/mcp`](src/mcp/index.ts)                                             | `POST /mcp`: tool `probe__echo` (snapshot [`probe.mcpc.json`](probe.mcpc.json)) |
-| worker | [`src/worker`](src/worker/index.ts)                                       | job `tick`, every minute, a row in `ticks`                                      |
-| store  | [`migrations/`](migrations), [`seeds/`](seeds)                            | postgres; the api image's `node dist/store/migrate.js` applies them             |
-| cli    | [`src/cli`](src/cli/index.ts)                                             | `agentage ping [msg]` prints `pong`                                             |
+| Part   | Source                                                                    | Serves                                                                                     |
+| ------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| pages  | [`src/pages`](src/pages/index.ts)                                         | `/`: `probe {version} · {commit}`                                                          |
+| ui     | [`src/ui`](src/ui/index.ts) (`<probe-echo>`, React on `@agentage/widget`) | `/ui/{version}/probe.js`, `harness.html`                                                   |
+| api    | [`src/api`](src/api/index.ts)                                             | `GET /api/v1/echo?msg=` (`probe:read`), `GET /api/v1/ticks?limit=&cursor=`, `openapi.json` |
+| mcp    | [`src/mcp`](src/mcp/index.ts)                                             | `POST /mcp`: `probe__echo` (`probe:read`; [`probe.mcpc.json`](probe.mcpc.json))            |
+| worker | [`src/worker`](src/worker/index.ts)                                       | job `tick`, every minute, a row in `ticks`                                                 |
+| store  | [`migrations/`](migrations), [`seeds/`](seeds)                            | postgres; the api image's `node dist/store/migrate.js` applies them                        |
+| cli    | [`src/cli`](src/cli/index.ts)                                             | `agentage ping [msg]` prints `pong`                                                        |
 
 ## Install and run
 
@@ -26,13 +26,14 @@ npm ci                                   # the cli comes with it: npx agentage i
 npx agentage extension up                # last line: ready    7 parts healthy    <n> s
 echo "http://localhost:4280/ui/$(jq -r .version package.json)/harness.html"  # open, click ping: pong hi
 curl -s localhost:4280/.well-known/agentage-extension.json
-npx agentage extension token --scope probe:read    # aga_... from the dev issuer on localhost:4281
+T=$(npx agentage extension token --scope probe:read)   # aga_... from the dev issuer on localhost:4281
+curl -s -H "Authorization: Bearer $T" "localhost:4280/api/v1/echo?msg=hi"   # {"success":true,"data":{"msg":"hi","caller":"usr_dev"}}
 npx agentage extension install .         # linked     @agentage/extension-probe (working copy)
 npx agentage ping                        # pong
 npx agentage extension down              # removed  8 containers · 1 network · 1 volume
 ```
 
-A global `agentage` (0.41 or later) works the same as `npx agentage`. `up` builds the five part
+A global `agentage` (0.41.2 or later) works the same as `npx agentage`. `up` builds the five part
 images from the release recipe, writes `.agentage/record.json` from the local image digests (so
 discovery is valid), starts postgres, runs the migrate job, the dev issuer (4281) and a Traefik
 gateway (4280) with the URL layout of a deployment, then waits until every part is healthy and
@@ -46,11 +47,11 @@ refused while the first holds 4280. On a kept volume (`down --keep-data`) the st
 What CI runs, in order, with the counts a green run prints (2026-11-05):
 
 ```bash
-npm run verify                                     # 32 tests passed, coverage over 70 %
+npm run verify                                     # 33 tests passed, coverage over 70 %
 npx agentage extension up                          # ready    7 parts healthy    <n> s
 scripts/image-smoke.sh "$(git rev-parse HEAD)"     # 5 lines: PASS {part}  commit ...  ok
 npx playwright install --with-deps chromium        # once; on Linux the OS libraries need sudo
-npm run test:e2e                                   # 8 passed (smoke and the widget axe test)
+npm run test:e2e                                   # 10 passed (smoke and the widget tests)
 ```
 
 Then the gate of [agentage/e2e](https://github.com/agentage/e2e) (private: needs read access)

@@ -11,6 +11,10 @@ const { version } = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
 ) as { version: string };
 const AGCID = /^[A-Za-z0-9._:-]{8,128}$/;
+// The dev issuer of `up`, and the 401 challenge naming the resource document (C5).
+const ISSUER = 'http://localhost:4281';
+const RESOURCE =
+  'Bearer resource_metadata="http://localhost:4280/.well-known/oauth-protected-resource"';
 
 const mcp = (method: string) => ({
   headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
@@ -26,9 +30,20 @@ test('discovery is valid, lists five images by digest, a postgres store and prob
   expect(res.status()).toBe(200);
   expect(res.headers()['access-control-allow-origin']).toBe('*');
   const doc = DiscoveryDocumentSchema.parse(await res.json());
-  expect(doc).toMatchObject({ id: 'probe', version, tools: ['probe__echo'], commands: ['ping'] });
+  const tools = [{ name: 'probe__echo', scope: 'probe:read' }];
+  expect(doc).toMatchObject({ id: 'probe', version, tools, commands: ['ping'] });
   expect(Object.keys(doc.parts).sort()).toEqual(['api', 'mcp', 'pages', 'store', 'ui', 'worker']);
   expect(doc.parts.store).toEqual({ kind: 'postgres', migrations: 1 });
+});
+
+test('the resource document names the issuer and probe:read', async ({ request }) => {
+  const res = await request.get('/.well-known/oauth-protected-resource');
+  expect(await res.json()).toEqual({
+    resource: 'http://localhost:4280',
+    authorization_servers: ['http://issuer:3000'],
+    scopes_supported: ['probe:read'],
+    bearer_methods_supported: ['header'],
+  });
 });
 
 test('pages names the version and the commit', async ({ request }) => {
@@ -37,9 +52,17 @@ test('pages names the version and the commit', async ({ request }) => {
   expect(await res.text()).toMatch(new RegExp(`probe ${version} · <code>[0-9a-f]{40}</code>`));
 });
 
-test('the api answers echo and ticks in the envelope with an agcid', async ({ request }) => {
-  const echo = await request.get('/api/v1/echo?msg=hi');
-  expect(await echo.text()).toBe('{"success":true,"data":{"msg":"hi"}}');
+test('the api answers echo to a probe:read token and ticks to anyone, with an agcid', async ({
+  request,
+}) => {
+  const none = await request.get('/api/v1/echo?msg=hi');
+  expect([none.status(), none.headers()['www-authenticate']]).toEqual([401, RESOURCE]);
+  const minted = await request.post(`${ISSUER}/token`, { data: { scope: 'probe:read' } });
+  const { token } = (await minted.json()) as { token: string };
+  const echo = await request.get('/api/v1/echo?msg=hi', {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  expect(await echo.text()).toBe('{"success":true,"data":{"msg":"hi","caller":"usr_dev"}}');
   expect(echo.headers()['agcid']).toMatch(AGCID);
   const ticks = OkEnvelopeSchema.parse(await (await request.get('/api/v1/ticks?limit=1')).json());
   expect(ticks.data).toEqual([expect.objectContaining({ job: expect.any(String) })]);

@@ -14,10 +14,10 @@ beforeAll(async () => {
 afterAll(() => server.close());
 
 describe('GET /api/v1/echo', () => {
-  it('echoes msg in the envelope, with an agcid', async () => {
+  it('echoes msg and names the caller in the envelope, with an agcid (C6)', async () => {
     const res = await server.fetch('/api/v1/echo?msg=hi');
     expect(res.status).toBe(200);
-    expect(await res.text()).toBe('{"success":true,"data":{"msg":"hi"}}');
+    expect(await res.text()).toBe('{"success":true,"data":{"msg":"hi","caller":"usr_test"}}');
     expect(res.headers.get('agcid')).toMatch(UUID_V7);
   });
 
