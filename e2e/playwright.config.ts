@@ -4,9 +4,12 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: '.',
   forbidOnly: !!process.env.CI,
+  // A retry only records the trace: a test that passes on it still fails the run.
   retries: process.env.CI ? 1 : 0,
+  failOnFlakyTests: !!process.env.CI,
   reporter: [['list']],
   use: {
+    trace: 'on-first-retry',
     baseURL: process.env.PROBE_BASE_URL ?? 'http://localhost:4280',
     extraHTTPHeaders: { 'x-client-type': 'test' },
   },

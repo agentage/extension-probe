@@ -6,12 +6,12 @@ describe('agentage ping', () => {
   it('answers pong', async () => {
     const ctx = createTestContext({ args: {} });
     expect(await create(ctx).ping()).toBe(0);
-    expect(ctx.output.stdout).toEqual(['pong']);
+    expect(ctx.output).toEqual({ stdout: ['pong'], stderr: [] });
   });
 
   it('answers pong and the message', async () => {
     const ctx = createTestContext({ args: { msg: 'hi' } });
-    await create(ctx).ping();
+    expect(await create(ctx).ping()).toBe(0);
     expect(ctx.output).toEqual({ stdout: ['pong hi'], stderr: [] });
   });
 });

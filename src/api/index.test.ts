@@ -41,8 +41,14 @@ describe('GET /api/v1/echo', () => {
     });
   });
 
-  it('refuses a repeated or oversized msg', async () => {
-    expect((await server.fetch('/api/v1/echo?msg=a&msg=b')).status).toBe(400);
-    expect((await server.fetch(`/api/v1/echo?msg=${'x'.repeat(201)}`)).status).toBe(400);
+  it('takes 200 characters, refuses an empty, repeated or oversized msg', async () => {
+    expect((await server.fetch(`/api/v1/echo?msg=${'x'.repeat(200)}`)).status).toBe(200);
+    for (const query of ['msg=', 'msg=a&msg=b', `msg=${'x'.repeat(201)}`]) {
+      const res = await server.fetch(`/api/v1/echo?${query}`);
+      expect(res.status, query).toBe(400);
+      expect(ErrorEnvelopeSchema.parse(await res.json()).error.code, query).toBe(
+        'VALIDATION_ERROR'
+      );
+    }
   });
 });

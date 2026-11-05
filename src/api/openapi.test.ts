@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
-import { ErrorEnvelopeSchema } from '@agentage/extension';
+import { createTestContext, ErrorEnvelopeSchema } from '@agentage/extension';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { EchoQuerySchema } from '../lib/echo.schema.js';
 import { TicksQuerySchema } from '../lib/ticks.js';
+import { create } from './index.js';
 
 const FILE = new URL('../../openapi.json', import.meta.url);
 const { version } = JSON.parse(
@@ -82,5 +83,18 @@ describe('openapi.json', () => {
     if (process.env['UPDATE_SNAPSHOT'])
       writeFileSync(FILE, `${JSON.stringify(generated(), null, 2)}\n`);
     expect(JSON.parse(readFileSync(FILE, 'utf8'))).toEqual(generated());
+  });
+
+  // A route outside openapi.json would get no declared access once tokens are on (M3); no sub-routers.
+  it('documents every route the api part serves, and nothing else', () => {
+    const { stack } = create(createTestContext());
+    expect(stack.filter((layer) => !layer.route).map((layer) => layer.name)).toEqual([]);
+    const served = stack.flatMap(({ route }) =>
+      route ? route.stack.map(({ method }) => `${method} /api/v1${route.path}`) : []
+    );
+    const documented = Object.entries(generated().paths).flatMap(([path, ops]) =>
+      Object.keys(ops).map((method) => `${method} ${path}`)
+    );
+    expect(served.sort()).toEqual(documented.sort());
   });
 });
