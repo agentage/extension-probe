@@ -13,12 +13,16 @@ version="${tag#v}"
 err=$(mktemp)
 trap 'rm -f "$err"' EXIT
 limit="${GUARD_TIMEOUT:-60}"
+if ! command -v timeout >/dev/null; then
+  echo "release-guard: timeout (GNU coreutils) is not on PATH; it bounds every GitHub and registry call" >&2
+  exit 1
+fi
 
-# Every GitHub and registry call is bounded; a timeout reads as "cannot tell", never "not released".
+# Each call is bounded (SIGKILL 5 s after SIGTERM); a timeout reads as "cannot tell".
 bounded() {
   local rc=0
-  if command -v timeout >/dev/null; then timeout "$limit" "$@" 2>"$err" || rc=$?; else "$@" 2>"$err" || rc=$?; fi
-  if [ "$rc" = 124 ]; then echo "timed out after $limit s" >>"$err"; fi
+  timeout -k 5 "$limit" "$@" 2>"$err" || rc=$?
+  if [ "$rc" = 124 ] || [ "$rc" = 137 ]; then echo "timed out after $limit s" >>"$err"; fi
   return "$rc"
 }
 

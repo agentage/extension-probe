@@ -69,8 +69,9 @@ jobs:
           npm ci --prefix e2e-suite --no-audit --no-fund
           npx --prefix e2e-suite playwright install chromium
 
+      # The cli and its kit come from this lockfile: a cli or kit patch needs a probe commit.
       - name: agentage extension up (the release recipes, store, dev issuer, gateway)
-        run: npx --yes @agentage/cli@^0.41 extension up
+        run: node_modules/.bin/agentage extension up
 
       - name: Image smoke (each part carries this commit, /health ok on loopback)
         run: scripts/image-smoke.sh "$GITHUB_SHA"

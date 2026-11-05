@@ -27,8 +27,12 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
   `npm run test:e2e` (the Playwright smoke and the widget axe test through `localhost:4280`);
   `agentage extension down` removes this working copy's compose project only (named in
   `.agentage/compose.json`, one per checkout), so scripts address it with `-f`, never `-p`
-- `scripts/release-guard.sh` bounds every GitHub and registry call (`GUARD_TIMEOUT`, 60 s); a
-  timeout stops the release like any "cannot tell", it never counts as "not released"
+- `scripts/release-guard.sh` bounds every GitHub and registry call (`GUARD_TIMEOUT`, 60 s, then
+  SIGKILL after 5 s; it refuses to run without GNU `timeout`); a timeout stops the release like
+  any "cannot tell", it never counts as "not released"
+- `@agentage/cli` is an exact devDependency: CI and the release run `node_modules/.bin/agentage`,
+  so the cli and the kit tool that writes the image recipe are this lockfile's; a cli or kit patch
+  reaches the images only through a probe commit (Dependabot's weekly group)
 - to try an unreleased kit or widget: `npm pack` them from agentage/platform into `.kit/`
   (ignored) and `npm install ./.kit/*.tgz`, as platform CI does; never commit a tarball or a
   `file:` spec

@@ -62,8 +62,9 @@ jobs:
 
       - name: Build and push the images, write the record
         if: steps.guard.outputs.decision == 'build'
+        # The cli and the kit tool that writes the recipe are the lockfile's, never a fresh resolve.
         run: |
-          npx --yes @agentage/cli@^0.41 extension build --push
+          node_modules/.bin/agentage extension build --push
           cat dist/agentage-extension.json
 
       - name: Release asset agentage-extension.json
