@@ -8,3 +8,5 @@ coverage/
 .env.local
 test-results/
 playwright-report/
+.agentage/
+.kit/

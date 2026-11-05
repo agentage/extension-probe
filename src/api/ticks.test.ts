@@ -1,0 +1,43 @@
+import { createTestContext, OkEnvelopeSchema, startTestServer } from '@agentage/extension';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { create } from './index.js';
+
+const ctx = createTestContext({ extension: { id: 'probe' }, store: true });
+let server: Awaited<ReturnType<typeof startTestServer>>;
+beforeAll(async () => {
+  server = await startTestServer({ create, ctx });
+});
+afterAll(async () => {
+  await server.close();
+  await ctx.close();
+});
+
+const get = async (path: string) => {
+  const res = await server.fetch(path);
+  return { status: res.status, body: OkEnvelopeSchema.parse(await res.json()) };
+};
+
+describe('GET /api/v1/ticks', () => {
+  it('starts from the seed, newest first, with an exact total', async () => {
+    const { status, body } = await get('/api/v1/ticks?limit=1');
+    expect(status).toBe(200);
+    expect(body.data).toEqual([{ id: '1', job: 'seed', tickedAt: expect.any(String) }]);
+    expect(body.meta).toEqual({ pagination: { limit: 1, total: 1 } });
+  });
+
+  it('pages by cursor once more ticks exist', async () => {
+    await ctx.store.query("insert into ticks (job) values ('tick'), ('tick')");
+    const first = await get('/api/v1/ticks?limit=2');
+    expect((first.body.data as { id: string }[]).map((t) => t.id)).toEqual(['3', '2']);
+    expect(first.body.meta).toEqual({ pagination: { limit: 2, total: 3, nextCursor: '2' } });
+    const next = await get('/api/v1/ticks?limit=2&cursor=2');
+    expect((next.body.data as { id: string }[]).map((t) => t.id)).toEqual(['1']);
+    expect(next.body.meta).toEqual({ pagination: { limit: 2, total: 3 } });
+  });
+
+  it('refuses a limit outside 1 to 100 and a bad cursor', async () => {
+    for (const query of ['limit=0', 'limit=101', 'limit=x', 'cursor=abc', 'other=1']) {
+      expect((await server.fetch(`/api/v1/ticks?${query}`)).status, query).toBe(400);
+    }
+  });
+});
