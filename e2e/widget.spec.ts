@@ -20,3 +20,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
     expect(violations.map((violation) => violation.id)).toEqual([]);
   });
 }
+
+test('the echo widget shows the refusal when its token is refused', async ({ page }) => {
+  await page.goto(`/ui/${version}/harness.html?token=aga_refused`);
+  await page.getByRole('button', { name: 'ping' }).click();
+  await expect(page.locator('probe-echo')).toContainText('Invalid token');
+});
