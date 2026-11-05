@@ -35,8 +35,11 @@ describe('GET /api/v1/ticks', () => {
     expect(next.body.meta).toEqual({ pagination: { limit: 2, total: 3 } });
   });
 
-  it('refuses a limit outside 1 to 100 and a bad cursor', async () => {
-    for (const query of ['limit=0', 'limit=101', 'limit=x', 'cursor=abc', 'other=1']) {
+  it('clamps a limit above 200 and refuses a limit below 1 and a bad cursor', async () => {
+    expect((await get('/api/v1/ticks?limit=500')).body.meta).toEqual({
+      pagination: { limit: 200, total: 3 },
+    });
+    for (const query of ['limit=0', 'limit=1.5', 'limit=x', 'cursor=abc', 'other=1']) {
       expect((await server.fetch(`/api/v1/ticks?${query}`)).status, query).toBe(400);
     }
   });

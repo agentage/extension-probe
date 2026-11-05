@@ -1,9 +1,9 @@
-// src/ui/echo.tsx: just a React component
 import { useState } from 'react';
 import { useHost } from '@agentage/widget';
-import { Button, Card } from '@agentage/widget/ds'; // tokens + Button + Card from ds.agentage.io; later its own package @agentage/components
+import { Button, Card } from '@agentage/widget/ds';
+
 export function Echo() {
-  const { tool } = useHost(); // own tools only; token stays in the host
+  const { tool } = useHost();
   const [answer, setAnswer] = useState('');
   return (
     <Card title="probe">

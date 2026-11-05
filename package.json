@@ -82,6 +82,7 @@
   },
   "devDependencies": {
     "@agentage/widget": "^0.1.0",
+    "@axe-core/playwright": "4.14.0",
     "@electric-sql/pglite": "0.5.15",
     "@playwright/test": "1.64.1",
     "@types/express": "5.0.6",
@@ -92,8 +93,10 @@
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "10.13.0",
     "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-plugin-playwright": "2.12.2",
     "eslint-plugin-prettier": "5.5.7",
+    "eslint-plugin-react-hooks": "7.1.1",
     "prettier": "3.9.10",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -103,5 +106,10 @@
   "keywords": [
     "agentage",
     "agentage-extension"
-  ]
+  ],
+  "overrides": {
+    "eslint-plugin-jsx-a11y": {
+      "eslint": "$eslint"
+    }
+  }
 }

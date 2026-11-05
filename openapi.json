@@ -133,9 +133,10 @@
             "required": false,
             "schema": {
               "default": 50,
+              "description": "page size; a limit above 200 is clamped to 200",
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 9007199254740991
             }
           },
           {

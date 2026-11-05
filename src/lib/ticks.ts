@@ -1,8 +1,17 @@
 import { type Store } from '@agentage/extension';
 import { z } from 'zod';
 
+// api-standards section 3: default 50, a limit above 200 is clamped, not refused.
+const MAX_LIMIT = 200;
+
 export const TicksQuerySchema = z.strictObject({
-  limit: z.coerce.number().int().min(1).max(100).default(50),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(50)
+    .describe(`page size; a limit above ${MAX_LIMIT} is clamped to ${MAX_LIMIT}`)
+    .transform((limit) => Math.min(limit, MAX_LIMIT)),
   cursor: z
     .string()
     .regex(/^[0-9]{1,19}$/)
