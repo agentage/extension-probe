@@ -41,8 +41,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # agentage/e2e is private; the org PAT_TOKEN reads it.
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      # agentage/e2e is private (the org PAT_TOKEN reads it); Dependabot runs get no secrets.
       - name: Checkout agentage/e2e
+        if: github.actor != 'dependabot[bot]'
         uses: actions/checkout@v7
         with:
           repository: agentage/e2e
@@ -50,18 +60,9 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: 'npm'
-          cache-dependency-path: |
-            package-lock.json
-            e2e-suite/package-lock.json
-
-      - name: Install
+      - name: Install agentage/e2e and Chromium
+        if: github.actor != 'dependabot[bot]'
         run: |
-          npm ci
           npm ci --prefix e2e-suite --no-audit --no-fund
           npx --prefix e2e-suite playwright install --with-deps chromium
 
@@ -81,6 +82,7 @@ jobs:
         run: npm run test:e2e
 
       - name: e2e gate on local (agentage/e2e, probe gate local)
+        if: github.actor != 'dependabot[bot]'
         working-directory: e2e-suite
         env:
           PROBE_DIR: ${{ github.workspace }}
