@@ -22,18 +22,20 @@ Needs Node 22+ and Docker.
 
 ```bash
 npm ci
-agentage extension up          # until cli 0.41: node node_modules/@agentage/extension/dist/tool/cli.js up
+agentage extension up          # cli 0.41 or later
 open http://localhost:4280/ui/0.2.0/harness.html   # click ping: pong hi
 curl -s localhost:4280/.well-known/agentage-extension.json
 agentage extension token --scope probe:read        # a dev token from localhost:4281
 agentage extension install . && agentage ping      # pong
-agentage extension down        # --keep-data keeps the store volume
+agentage extension down        # this checkout only; --keep-data keeps the store volume
 ```
 
 `up` builds the five part images from the release recipe, writes `.agentage/record.json` from the
 local image digests (so discovery is valid), starts postgres, runs the migrate job, the dev issuer
 (4281) and a Traefik gateway (4280) with the URL layout of a deployment, then waits until every part
-is healthy and prints `ready 7 parts healthy`.
+is healthy and prints `ready 7 parts healthy`. Each checkout is its own compose project, so `down`
+in one never touches another; a second checkout's `up` is refused while the first holds 4280.
+On a kept volume the store line says `1 migration already applied · 1 seed already applied`.
 
 ## Verify
 

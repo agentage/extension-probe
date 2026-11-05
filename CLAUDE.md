@@ -24,9 +24,11 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 ## Commands
 
 - `npm run verify`; `agentage extension up`, then `scripts/image-smoke.sh <commit>` and
-  `npm run test:e2e` (the Playwright smoke and the widget axe test through `localhost:4280`)
-- until cli 0.41 is on npm, the kit's own tool: `node node_modules/@agentage/extension/dist/tool/cli.js
-build|up|down|token` (the TEMPORARY branch in both workflows; delete it once cli 0.41 is published)
+  `npm run test:e2e` (the Playwright smoke and the widget axe test through `localhost:4280`);
+  `agentage extension down` removes this working copy's compose project only (named in
+  `.agentage/compose.json`, one per checkout), so scripts address it with `-f`, never `-p`
+- `scripts/release-guard.sh` bounds every GitHub and registry call (`GUARD_TIMEOUT`, 60 s); a
+  timeout stops the release like any "cannot tell", it never counts as "not released"
 - to try an unreleased kit or widget: `npm pack` them from agentage/platform into `.kit/`
   (ignored) and `npm install ./.kit/*.tgz`, as platform CI does; never commit a tarball or a
   `file:` spec

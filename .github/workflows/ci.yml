@@ -17,6 +17,7 @@ jobs:
   verify:
     name: Verify
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -69,13 +70,7 @@ jobs:
           npx --prefix e2e-suite playwright install chromium
 
       - name: agentage extension up (the release recipes, store, dev issuer, gateway)
-        run: |
-          # TEMPORARY: the kit's own tool until cli 0.41 (agentage extension up) is on npm
-          if npm view '@agentage/cli@^0.41' version >/dev/null 2>&1; then
-            npx --yes @agentage/cli@^0.41 extension up
-          else
-            node node_modules/@agentage/extension/dist/tool/cli.js up
-          fi
+        run: npx --yes @agentage/cli@^0.41 extension up
 
       - name: Image smoke (each part carries this commit, /health ok on loopback)
         run: scripts/image-smoke.sh "$GITHUB_SHA"
@@ -92,4 +87,4 @@ jobs:
 
       - name: Logs on failure
         if: failure()
-        run: docker compose -p agentage-probe logs --no-color --tail 80 || true
+        run: docker compose -f .agentage/compose.json logs --no-color --tail 80 || true
