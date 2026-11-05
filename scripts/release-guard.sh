@@ -32,7 +32,7 @@ if json=$(gh release download "$tag" -p agentage-extension.json -O - 2>"$err"); 
   echo reuse
   exit 0
 fi
-not_found 'release not found|no assets match' "the $tag release record"
+not_found 'release not found|no assets match|no assets to download' "the $tag release record"
 
 for part in $(jq -r '.agentage.parts | to_entries[] | select(.value != false) | .key' package.json); do
   case "$part" in pages | ui | api | mcp | worker) ;; *) continue ;; esac
