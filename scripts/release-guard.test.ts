@@ -1,5 +1,12 @@
-import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import {
+  chmodSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -12,15 +19,28 @@ const API = 'ghcr.io/agentage/probe-api:0.1.0';
 // gh and docker answer as the real ones do (messages checked against both); FAKE_*_ERROR overrides.
 const SHIMS = {
   gh: [
+    '[ -n "$FAKE_GH_SLEEP" ] && sleep "$FAKE_GH_SLEEP"',
     '[ -n "$FAKE_GH_ERROR" ] && { echo "$FAKE_GH_ERROR" >&2; exit 1; }',
     '[ -f "$FAKE_RECORD" ] && { cat "$FAKE_RECORD"; exit 0; }',
     'echo "release not found" >&2; exit 1',
   ],
   docker: [
+    '[ -n "$FAKE_DOCKER_SLEEP" ] && sleep "$FAKE_DOCKER_SLEEP"',
     '[ -n "$FAKE_DOCKER_ERROR" ] && { echo "$FAKE_DOCKER_ERROR" >&2; exit 1; }',
     'case " $FAKE_IMAGES " in *" $3 "*) exit 0 ;; esac',
     'echo "manifest unknown" >&2; exit 1',
   ],
+};
+
+// Only the tools the guard needs, timeout left out: how it runs on a machine without coreutils.
+const pathWithoutTimeout = (dir: string): string => {
+  const tools = join(dir, 'tools');
+  mkdirSync(tools);
+  for (const tool of ['bash', 'jq', 'mktemp', 'grep', 'cat', 'rm', 'mkdir']) {
+    const found = execFileSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).trim();
+    symlinkSync(found, join(tools, tool));
+  }
+  return `${join(dir, 'bin')}:${tools}`;
 };
 
 interface Released {
@@ -28,6 +48,9 @@ interface Released {
   images?: string[];
   ghError?: string;
   dockerError?: string;
+  ghSleep?: string;
+  dockerSleep?: string;
+  noTimeout?: boolean;
 }
 
 const guard = (released: Released, args = ['v0.1.0', SHA]) => {
@@ -43,13 +66,19 @@ const guard = (released: Released, args = ['v0.1.0', SHA]) => {
   if (record) writeFileSync(join(dir, 'released.json'), `${JSON.stringify(record, null, 2)}\n`);
   const env = {
     ...process.env,
-    PATH: `${join(dir, 'bin')}:${process.env['PATH'] ?? ''}`,
+    PATH: released.noTimeout
+      ? pathWithoutTimeout(dir)
+      : `${join(dir, 'bin')}:${process.env['PATH'] ?? ''}`,
     FAKE_RECORD: join(dir, 'released.json'),
     FAKE_IMAGES: images.join(' '),
     FAKE_GH_ERROR: released.ghError ?? '',
     FAKE_DOCKER_ERROR: released.dockerError ?? '',
+    FAKE_GH_SLEEP: released.ghSleep ?? '',
+    FAKE_DOCKER_SLEEP: released.dockerSleep ?? '',
+    GUARD_TIMEOUT: '1',
   };
-  const run = spawnSync('bash', [GUARD, ...args], { cwd: dir, env, encoding: 'utf8' });
+  const bash = released.noTimeout ? join(dir, 'tools', 'bash') : 'bash';
+  const run = spawnSync(bash, [GUARD, ...args], { cwd: dir, env, encoding: 'utf8' });
   return { dir, code: run.status, out: run.stdout.trim(), err: run.stderr.trim() };
 };
 
@@ -95,6 +124,23 @@ describe('release guard', () => {
     const registry = guard({ dockerError: 'received unexpected HTTP status: 503' });
     expect(registry).toMatchObject({ code: 1, out: '' });
     expect(registry.err).toContain(`cannot tell whether ${API} exists`);
+  });
+
+  it('stops on a GitHub or registry call that hangs, naming the timeout', () => {
+    const gh = guard({ ghSleep: '5' });
+    expect(gh).toMatchObject({ code: 1, out: '' });
+    expect(gh.err).toContain('cannot tell whether the v0.1.0 release record exists');
+    expect(gh.err).toContain('timed out after 1 s');
+    const registry = guard({ dockerSleep: '5' });
+    expect(registry).toMatchObject({ code: 1, out: '' });
+    expect(registry.err).toContain(`cannot tell whether ${API} exists`);
+    expect(registry.err).toContain('timed out after 1 s');
+  });
+
+  it('refuses to run where timeout is missing, rather than call GitHub unbounded', () => {
+    const run = guard({ noTimeout: true });
+    expect(run).toMatchObject({ code: 1, out: '' });
+    expect(run.err).toContain('timeout (GNU coreutils) is not on PATH');
   });
 
   it('says how to call it', () => {

@@ -21,6 +21,7 @@ jobs:
   release:
     name: Images, record, package
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -61,13 +62,9 @@ jobs:
 
       - name: Build and push the images, write the record
         if: steps.guard.outputs.decision == 'build'
+        # The cli and the kit tool that writes the recipe are the lockfile's, never a fresh resolve.
         run: |
-          # TEMPORARY: the kit's own tool until cli 0.41 (agentage extension build) is on npm
-          if npm view '@agentage/cli@^0.41' version >/dev/null 2>&1; then
-            npx --yes @agentage/cli@^0.41 extension build --push
-          else
-            node node_modules/@agentage/extension/dist/tool/cli.js build --push
-          fi
+          node_modules/.bin/agentage extension build --push
           cat dist/agentage-extension.json
 
       - name: Release asset agentage-extension.json
