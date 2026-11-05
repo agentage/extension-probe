@@ -15,6 +15,7 @@ const GUARD = new URL('./release-guard.sh', import.meta.url).pathname;
 const SHA = 'a'.repeat(40);
 const RECORD = { id: 'probe', version: '0.1.0', commit: SHA, parts: {} };
 const API = 'ghcr.io/agentage/probe-api:0.1.0';
+const PAGES = 'ghcr.io/agentage/probe-pages:0.1.0'; // the first image part the guard asks about
 
 // gh and docker answer as the real ones do (messages checked against both); FAKE_*_ERROR overrides.
 const SHIMS = {
@@ -60,7 +61,15 @@ const guard = (released: Released, args = ['v0.1.0', SHA]) => {
     writeFileSync(join(dir, 'bin', name), `#!/bin/sh\n${lines.join('\n')}\n`);
     chmodSync(join(dir, 'bin', name), 0o755);
   }
-  const parts = { api: true, cli: false, store: 'postgres' };
+  const parts = {
+    pages: true,
+    ui: true,
+    api: true,
+    mcp: true,
+    worker: true,
+    cli: true,
+    store: 'postgres',
+  };
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ agentage: { id: 'probe', parts } }));
   const { record, images = [] } = released;
   if (record) writeFileSync(join(dir, 'released.json'), `${JSON.stringify(record, null, 2)}\n`);
@@ -110,10 +119,14 @@ describe('release guard', () => {
     expect(run.err).toContain(`v0.1.0 was released from ${SHA}`);
   });
 
-  it('refuses an image already pushed without a record', () => {
-    const run = guard({ images: [API] });
-    expect(run.code).toBe(1);
-    expect(run.err).toContain(`${API} is already pushed`);
+  it('refuses an image already pushed without a record, whichever part it is', () => {
+    for (const image of [API, 'ghcr.io/agentage/probe-worker:0.1.0']) {
+      const run = guard({ images: [image] });
+      expect(run).toMatchObject({ code: 1, out: '' });
+      expect(run.err).toBe(
+        `release-guard: ${image} is already pushed but v0.1.0 has no record; release a new version`
+      );
+    }
   });
 
   it('stops when GitHub or the registry cannot answer, instead of rebuilding', () => {
@@ -123,7 +136,7 @@ describe('release guard', () => {
     expect(gh.err).toContain('HTTP 401: Bad credentials');
     const registry = guard({ dockerError: 'received unexpected HTTP status: 503' });
     expect(registry).toMatchObject({ code: 1, out: '' });
-    expect(registry.err).toContain(`cannot tell whether ${API} exists`);
+    expect(registry.err).toContain(`cannot tell whether ${PAGES} exists`);
   });
 
   it('stops on a GitHub or registry call that hangs, naming the timeout', () => {
@@ -133,7 +146,7 @@ describe('release guard', () => {
     expect(gh.err).toContain('timed out after 1 s');
     const registry = guard({ dockerSleep: '5' });
     expect(registry).toMatchObject({ code: 1, out: '' });
-    expect(registry.err).toContain(`cannot tell whether ${API} exists`);
+    expect(registry.err).toContain(`cannot tell whether ${PAGES} exists`);
     expect(registry.err).toContain('timed out after 1 s');
   });
 
@@ -145,7 +158,7 @@ describe('release guard', () => {
 
   it('says how to call it', () => {
     const run = guard({}, ['v0.1.0']);
-    expect(run.code).not.toBe(0);
+    expect(run).toMatchObject({ code: 1, out: '' });
     expect(run.err).toContain('usage: scripts/release-guard.sh <tag> <commit>');
   });
 });

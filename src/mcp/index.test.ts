@@ -49,6 +49,14 @@ describe('probe__echo', () => {
         params: { name: 'probe__echo', arguments: { msg: 'hi' } },
       }),
     });
-    expect(await res.text()).toContain('"structuredContent":{"msg":"pong hi"}');
+    const data = (await res.text()).split('\n').find((line) => line.startsWith('data:')) ?? '';
+    expect(JSON.parse(data.slice(5))).toEqual({
+      jsonrpc: '2.0',
+      id: 1,
+      result: {
+        content: [{ type: 'text', text: '{"msg":"pong hi"}' }],
+        structuredContent: { msg: 'pong hi' },
+      },
+    });
   });
 });

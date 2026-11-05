@@ -28,7 +28,11 @@ describe('probe manifest', () => {
     const manifest = validateManifest(pkg);
     expect(manifest.agentage.id).toBe('probe');
     expect(imageParts(manifest)).toEqual(['pages', 'ui', 'api', 'mcp', 'worker']);
-    expect(manifest.agentage.parts).toMatchObject({ cli: true, store: 'postgres' });
+    expect(manifest.agentage.parts).toEqual({
+      ...{ pages: true, ui: true, api: true, mcp: true, worker: true, cli: true },
+      store: 'postgres',
+    });
+    expect(manifest.agentage.commands?.map(({ name }) => name)).toEqual(['ping']);
   });
 
   it('every part exports create(ctx) and nothing else; ui exports its widgets map', () => {
