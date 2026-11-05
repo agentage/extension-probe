@@ -58,6 +58,10 @@ describe('release guard', () => {
     expect(guard({})).toMatchObject({ code: 0, out: 'build', err: '' });
   });
 
+  it('builds when the release exists with no record yet (a fresh tag)', () => {
+    expect(guard({ ghError: 'no assets to download' })).toMatchObject({ code: 0, out: 'build' });
+  });
+
   it('builds the first image of a part when the registry denies a package it has never seen', () => {
     expect(
       guard({ dockerError: 'Get "https://ghcr.io/v2/x/manifests/0.1.0": denied' })
