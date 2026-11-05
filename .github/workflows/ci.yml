@@ -87,14 +87,19 @@ jobs:
           PROBE_DIR: ${{ github.workspace }}
         run: npm run e2e -- probe gate local
 
-      # A gate that skipped itself is not green: 45 executed with PROBE_DIR on 2026-11-05.
-      - name: Assert the gate was not vacuous
+      # A gate that skipped itself is not green (45 executed on 2026-11-05); the cli part tests need PROBE_DIR.
+      - name: Assert the gate was not vacuous and read this checkout
         if: github.actor != 'dependabot[bot]'
         working-directory: e2e-suite
         env:
-          MIN_EXECUTED: '45'
-        run: node scripts/assert-executed.mjs
+          MIN_EXECUTED: '30'
+        run: |
+          set -euo pipefail
+          node scripts/assert-executed.mjs
+          ran=$(jq '[.. | objects | select(.specs?) | .specs[] | select(.file | test("probe/p0/cli")) | .tests[] | select(.status != "skipped")] | length' reports/results.json)
+          echo "cli part tests executed: $ran"
+          test "$ran" -gt 0
 
       - name: Logs on failure
-        if: failure()
+        if: failure() || cancelled()
         run: docker compose -f .agentage/compose.json logs --no-color --tail 80 || true

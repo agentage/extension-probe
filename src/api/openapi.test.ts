@@ -85,9 +85,10 @@ describe('openapi.json', () => {
     expect(JSON.parse(readFileSync(FILE, 'utf8'))).toEqual(generated());
   });
 
-  // A route outside openapi.json would get no declared access once tokens are on (M3).
+  // A route outside openapi.json would get no declared access once tokens are on (M3); no sub-routers.
   it('documents every route the api part serves, and nothing else', () => {
     const { stack } = create(createTestContext());
+    expect(stack.filter((layer) => !layer.route).map((layer) => layer.name)).toEqual([]);
     const served = stack.flatMap(({ route }) =>
       route ? route.stack.map(({ method }) => `${method} /api/v1${route.path}`) : []
     );

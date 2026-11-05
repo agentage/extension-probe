@@ -27,7 +27,8 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
   `npm run test:e2e` (the Playwright smoke and the widget axe test through `localhost:4280`);
   `agentage extension down` removes this working copy's compose project only (named in
   `.agentage/compose.json`, one per checkout), so scripts address it with `-f`, never `-p`
-- no retries anywhere (`e2e/` and the gate): a flake is fixed at its cause; a test that needs
+- a flake is fixed at its cause: the gate runs with no retries, `e2e/` retries once in CI only to
+  keep a trace and fails a test that passed on it (`failOnFlakyTests`); a test that needs
   the store boots it in `beforeAll` (PGlite's first use is a WASM boot), never inside a test's 5 s;
   the README's Verify section holds the counts a green run prints: change them with the tests
 - `scripts/release-guard.sh` bounds every GitHub and registry call (`GUARD_TIMEOUT`, 60 s, then
