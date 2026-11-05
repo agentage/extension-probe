@@ -1,6 +1,6 @@
 {
   "name": "@agentage/extension-probe",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The probe extension: one of every agentage part kind, the template every later extension copies",
   "type": "module",
   "license": "MIT",
@@ -76,13 +76,13 @@
     "prepublishOnly": "npm run verify"
   },
   "dependencies": {
-    "@agentage/extension": "^0.2.0",
+    "@agentage/extension": "^0.2.1",
     "express": "^5.1.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
     "@agentage/cli": "0.41.0",
-    "@agentage/widget": "^0.1.0",
+    "@agentage/widget": "^0.1.1",
     "@axe-core/playwright": "4.14.0",
     "@electric-sql/pglite": "0.5.15",
     "@playwright/test": "1.64.1",
