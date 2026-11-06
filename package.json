@@ -1,6 +1,6 @@
 {
   "name": "@agentage/extension-probe",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The probe extension: one of every agentage part kind, the template every later extension copies",
   "type": "module",
   "license": "MIT",
@@ -76,7 +76,7 @@
     "prepublishOnly": "npm run verify"
   },
   "dependencies": {
-    "@agentage/extension": "^0.3.0",
+    "@agentage/extension": "^0.3.1",
     "express": "^5.1.0",
     "zod": "^4.2.0"
   },
