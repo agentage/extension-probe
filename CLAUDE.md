@@ -7,7 +7,7 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 ## Rules this repo proves (the kit's `agentage extension check` and `src/manifest.test.ts`)
 
 - A part module exports `create(ctx)` and nothing else; `src/ui/index.ts` exports `widgets` only.
-  Never `listen()`, `process.env`, a token check or an absolute agentage URL in `src/`.
+  Never `listen()`, the `process` global, a token check or an absolute agentage URL in `src/`.
 - A part imports only its own folder and `src/lib/`: each image carries `dist/{part}` and
   `dist/lib` only, so a cross-part import would not start.
 - No Dockerfile, no compose file: the kit tool builds `ghcr.io/agentage/probe-{part}:{version}`.
