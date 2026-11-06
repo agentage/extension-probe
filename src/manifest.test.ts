@@ -2,17 +2,11 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
 import { imageParts, validateManifest } from '@agentage/extension';
 import { describe, expect, it } from 'vitest';
-import * as api from './api/index.js';
-import * as cli from './cli/index.js';
-import * as mcp from './mcp/index.js';
-import * as pages from './pages/index.js';
 import * as ui from './ui/index.js';
-import * as worker from './worker/index.js';
 
 const SRC = new URL('.', import.meta.url);
 const pkg = JSON.parse(readFileSync(new URL('../package.json', SRC), 'utf8')) as {
   exports: Record<string, unknown>;
-  dependencies: Record<string, string>;
 };
 
 const sources = (): [string, string][] =>
@@ -35,21 +29,9 @@ describe('probe manifest', () => {
     expect(manifest.agentage.commands?.map(({ name }) => name)).toEqual(['ping']);
   });
 
-  it('every part exports create(ctx) and nothing else; ui exports its widgets map', () => {
-    for (const part of [api, cli, mcp, pages, worker])
-      expect(Object.keys(part)).toEqual(['create']);
+  it('ui exports its widgets map; the package exports no part code', () => {
     expect(Object.keys(ui)).toEqual(['widgets']);
-  });
-
-  it('the package exports no part code and depends on no other extension', () => {
     expect(Object.keys(pkg.exports)).toEqual(['./agentage-extension.json', './package.json']);
-    expect(Object.keys(pkg.dependencies).filter((name) => name.includes('extension-'))).toEqual([]);
-  });
-
-  it('part code is sealed: no listen(), process.env or argv, no absolute agentage URL', () => {
-    const sealing = /\.listen\(|process\.(env|argv)|https?:\/\/[^'"`\s]*agentage\.io/;
-    expect(sources().filter(([, text]) => sealing.test(text))).toEqual([]);
-    expect(sources().length).toBeGreaterThan(7);
   });
 
   it('a part imports only its own folder and src/lib: each image carries just those', () => {

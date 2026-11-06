@@ -47,7 +47,7 @@ refused while the first holds 4280. On a kept volume (`down --keep-data`) the st
 What CI runs, in order, with the counts a green run prints (2026-11-06):
 
 ```bash
-npm run verify                                     # 33 tests passed, coverage over 70 %
+npm run verify                                     # 31 tests passed, coverage over 70 %
 npx agentage extension up                          # ready    7 parts healthy    <n> s
 scripts/image-smoke.sh "$(git rev-parse HEAD)"     # 5 lines: PASS {part}  commit ...  ok
 npx playwright install chromium                    # once; a bare Linux also needs --with-deps

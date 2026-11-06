@@ -4,7 +4,7 @@ Public repo. The probe extension, the template every later extension copies; kee
 exactly on the kit's rules. Standards: the engineering standards batch (repo-baseline, typescript,
 code-style, testing, ci-cd, backend, security); this file only adds what the tree does not say.
 
-## Rules this repo proves (`src/manifest.test.ts` guards them)
+## Rules this repo proves (the kit's `agentage extension check` and `src/manifest.test.ts`)
 
 - A part module exports `create(ctx)` and nothing else; `src/ui/index.ts` exports `widgets` only.
   Never `listen()`, `process.env`, a token check or an absolute agentage URL in `src/`.
