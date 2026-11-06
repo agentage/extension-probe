@@ -33,7 +33,7 @@ npx agentage ping                        # pong
 npx agentage extension down              # removed  8 containers · 1 network · 1 volume
 ```
 
-A global `agentage` (0.41.2 or later) works the same as `npx agentage`. `up` builds the five part
+A global `agentage` (0.42.0 or later) works the same as `npx agentage`. `up` builds the five part
 images from the release recipe, writes `.agentage/record.json` from the local image digests (so
 discovery is valid), starts postgres, runs the migrate job, the dev issuer (4281) and a Traefik
 gateway (4280) with the URL layout of a deployment, then waits until every part is healthy and

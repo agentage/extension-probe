@@ -34,6 +34,9 @@ jobs:
       - name: Verify (type-check, lint, format, test with coverage, build)
         run: npm run verify
 
+      - name: Conformance (the kit's six rules; the store rule uses the runner's docker)
+        run: node_modules/.bin/agentage extension check
+
   local:
     name: up and the e2e gate on local
     runs-on: ubuntu-latest
