@@ -37,7 +37,7 @@ jobs:
   local:
     name: up and the e2e gate on local
     runs-on: ubuntu-latest
-    # The gate on local stays under 10 minutes (about 2 on 2026-11-05); slower is a regression.
+    # The gate on local stays under 10 minutes (about 3 on 2026-11-06); slower is a regression.
     timeout-minutes: 10
     steps:
       - name: Checkout
