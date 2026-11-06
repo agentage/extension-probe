@@ -44,13 +44,13 @@ refused while the first holds 4280. On a kept volume (`down --keep-data`) the st
 
 ## Verify
 
-What CI runs, in order, with the counts a green run prints (2026-11-05):
+What CI runs, in order, with the counts a green run prints (2026-11-06):
 
 ```bash
 npm run verify                                     # 33 tests passed, coverage over 70 %
 npx agentage extension up                          # ready    7 parts healthy    <n> s
 scripts/image-smoke.sh "$(git rev-parse HEAD)"     # 5 lines: PASS {part}  commit ...  ok
-npx playwright install --with-deps chromium        # once; on Linux the OS libraries need sudo
+npx playwright install chromium                    # once; a bare Linux also needs --with-deps
 npm run test:e2e                                   # 10 passed (smoke and the widget tests)
 ```
 
@@ -59,14 +59,14 @@ against the same `up`, from a checkout of that repo:
 
 ```bash
 npm ci && npx playwright install --with-deps chromium
-PROBE_DIR=/path/to/extension-probe npm run e2e -- probe gate local   # 45 passed, 5 skipped
+PROBE_DIR=/path/to/extension-probe npm run e2e -- probe gate local   # 55 passed, 5 skipped
 ```
 
 `PROBE_DIR` lets the gate read `probe.mcpc.json`, `openapi.json` and the cli part from this
-checkout; without it the cli part tests skip. Of the 5 skipped, 4 need a deployed release (the
-pinned version, the release record twice, the HTTPS redirect) and 1 is a known gap marked `fixme`
-in agentage/e2e (the api-standards shape of a failed tool call). CI fails a gate that executed
-fewer than 30 tests or none of the cli part, and the job is bounded at 10 minutes (about 2 today).
+checkout; without it the cli part tests skip. The 5 skipped need a deployed release (the pinned
+version, the release commit, the release record twice, the HTTPS redirect). CI fails a gate that
+executed fewer than 30 tests or none of the cli part, and the job is bounded at 10 minutes (about 3
+today).
 Dependabot runs get no secrets, so they skip the agentage/e2e checkout and the gate (`up`, the
 image smoke and `npm run test:e2e` still run).
 

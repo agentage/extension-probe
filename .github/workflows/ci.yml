@@ -37,7 +37,7 @@ jobs:
   local:
     name: up and the e2e gate on local
     runs-on: ubuntu-latest
-    # The gate on local stays under 10 minutes (about 2 on 2026-11-05); slower is a regression.
+    # The gate on local stays under 10 minutes (about 3 on 2026-11-06); slower is a regression.
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -49,10 +49,10 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Install (and Chromium for the widget test)
+      - name: Install (and Chromium for the widget test; the runner has its OS libraries)
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
 
       # agentage/e2e is private (the org PAT_TOKEN reads it); Dependabot runs get no secrets.
       - name: Checkout agentage/e2e
@@ -87,7 +87,7 @@ jobs:
           PROBE_DIR: ${{ github.workspace }}
         run: npm run e2e -- probe gate local
 
-      # A gate that skipped itself is not green (45 executed on 2026-11-05); the cli part tests need PROBE_DIR.
+      # A gate that skipped itself is not green (55 executed on 2026-11-06); the cli part tests need PROBE_DIR.
       - name: Assert the gate was not vacuous and read this checkout
         if: github.actor != 'dependabot[bot]'
         working-directory: e2e-suite
