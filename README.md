@@ -33,7 +33,7 @@ npx agentage ping                        # pong
 npx agentage extension down              # removed  8 containers · 1 network · 1 volume
 ```
 
-A global `agentage` (0.41.2 or later) works the same as `npx agentage`. `up` builds the five part
+A global `agentage` (0.42.0 or later) works the same as `npx agentage`. `up` builds the five part
 images from the release recipe, writes `.agentage/record.json` from the local image digests (so
 discovery is valid), starts postgres, runs the migrate job, the dev issuer (4281) and a Traefik
 gateway (4280) with the URL layout of a deployment, then waits until every part is healthy and
@@ -47,7 +47,7 @@ refused while the first holds 4280. On a kept volume (`down --keep-data`) the st
 What CI runs, in order, with the counts a green run prints (2026-11-06):
 
 ```bash
-npm run verify                                     # 33 tests passed, coverage over 70 %
+npm run verify                                     # 31 tests passed, coverage over 70 %
 npx agentage extension up                          # ready    7 parts healthy    <n> s
 scripts/image-smoke.sh "$(git rev-parse HEAD)"     # 5 lines: PASS {part}  commit ...  ok
 npx playwright install chromium                    # once; a bare Linux also needs --with-deps
