@@ -13,9 +13,14 @@ import { describe, expect, it } from 'vitest';
 
 const GUARD = new URL('./release-guard.sh', import.meta.url).pathname;
 const SHA = 'a'.repeat(40);
-const RECORD = { id: 'probe', version: '0.1.0', commit: SHA, parts: {} };
-const API = 'ghcr.io/agentage/probe-api:0.1.0';
-const PAGES = 'ghcr.io/agentage/probe-pages:0.1.0'; // the first image part the guard asks about
+const { id } = (
+  JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+    agentage: { id: string };
+  }
+).agentage;
+const RECORD = { id, version: '0.1.0', commit: SHA, parts: {} };
+const API = `ghcr.io/agentage/${id}-api:0.1.0`;
+const PAGES = `ghcr.io/agentage/${id}-pages:0.1.0`; // the first image part the guard asks about
 
 // gh and docker answer as the real ones do (messages checked against both); FAKE_*_ERROR overrides.
 const SHIMS = {
@@ -70,7 +75,7 @@ const guard = (released: Released, args = ['v0.1.0', SHA]) => {
     cli: true,
     store: 'postgres',
   };
-  writeFileSync(join(dir, 'package.json'), JSON.stringify({ agentage: { id: 'probe', parts } }));
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ agentage: { id, parts } }));
   const { record, images = [] } = released;
   if (record) writeFileSync(join(dir, 'released.json'), `${JSON.stringify(record, null, 2)}\n`);
   const env = {
@@ -120,7 +125,7 @@ describe('release guard', () => {
   });
 
   it('refuses an image already pushed without a record, whichever part it is', () => {
-    for (const image of [API, 'ghcr.io/agentage/probe-worker:0.1.0']) {
+    for (const image of [API, `ghcr.io/agentage/${id}-worker:0.1.0`]) {
       const run = guard({ images: [image] });
       expect(run).toMatchObject({ code: 1, out: '' });
       expect(run.err).toBe(

@@ -7,11 +7,10 @@ import { TicksQuerySchema } from '../lib/ticks.js';
 import { create } from './index.js';
 
 const FILE = new URL('../../openapi.json', import.meta.url);
-const { version } = JSON.parse(
+const { version, agentage } = JSON.parse(
   readFileSync(new URL('../../package.json', import.meta.url), 'utf8')
-) as {
-  version: string;
-};
+) as { version: string; agentage: { id: string } };
+const { id } = agentage;
 
 const json = (schema: z.ZodType): Record<string, unknown> => {
   const doc = { ...(z.toJSONSchema(schema, { io: 'input' }) as Record<string, unknown>) };
@@ -65,14 +64,14 @@ const TickSchema = z.object({ id: z.string(), job: z.string(), tickedAt: z.iso.d
 // The api's contract, generated from its Zod schemas; the kit serves the committed copy.
 const generated = () => ({
   openapi: '3.1.0',
-  info: { title: 'probe', version },
+  info: { title: id, version },
   // C6: the only place a route names its scope; the kit asks for it before the route runs.
   components: { securitySchemes: { pat: { type: 'http', scheme: 'bearer' } } },
   paths: {
     '/api/v1/echo': {
       get: {
         operationId: 'echo',
-        security: [{ pat: ['probe:read'] }],
+        security: [{ pat: [`${id}:read`] }],
         parameters: parameters(EchoQuerySchema),
         responses: { '200': ok(z.object({ msg: z.string(), caller: z.string() })), '400': invalid },
       },

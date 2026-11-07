@@ -2,7 +2,7 @@ import { createTestContext } from '@agentage/extension';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { create } from './index.js';
 
-const ctx = createTestContext({ extension: { id: 'probe' }, store: true });
+const ctx = createTestContext({ store: true });
 // The store boots (WASM, migrations, seed) on first use: here, not inside a test's 5 s.
 beforeAll(() => ctx.store.query('select 1'), 30_000);
 afterAll(() => ctx.close());

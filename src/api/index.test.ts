@@ -6,10 +6,7 @@ const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f
 
 let server: Awaited<ReturnType<typeof startTestServer>>;
 beforeAll(async () => {
-  server = await startTestServer({
-    create,
-    ctx: createTestContext({ extension: { id: 'probe' } }),
-  });
+  server = await startTestServer({ create, ctx: createTestContext() });
 });
 afterAll(() => server.close());
 
@@ -22,12 +19,12 @@ describe('GET /api/v1/echo', () => {
   });
 
   it('keeps the caller agcid', async () => {
-    const res = await server.fetch('/api/v1/echo?msg=hi', { headers: { agcid: 'probe-test-1' } });
-    expect(res.headers.get('agcid')).toBe('probe-test-1');
+    const res = await server.fetch('/api/v1/echo?msg=hi', { headers: { agcid: 'echo-test-1' } });
+    expect(res.headers.get('agcid')).toBe('echo-test-1');
   });
 
   it('answers VALIDATION_ERROR without msg', async () => {
-    const res = await server.fetch('/api/v1/echo', { headers: { agcid: 'probe-test-2' } });
+    const res = await server.fetch('/api/v1/echo', { headers: { agcid: 'echo-test-2' } });
     expect(res.status).toBe(400);
     const body: unknown = await res.json();
     expect(ErrorEnvelopeSchema.parse(body)).toEqual({
@@ -35,7 +32,7 @@ describe('GET /api/v1/echo', () => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Invalid query',
-        agcid: 'probe-test-2',
+        agcid: 'echo-test-2',
         details: [{ field: 'msg', message: expect.any(String) }],
       },
     });

@@ -7,9 +7,10 @@ import {
 import { expect, test } from '@playwright/test';
 
 // Boot-proving smoke of every part through the local gateway: no secrets, the URL layout as on next.
-const { version } = JSON.parse(
+const { version, agentage } = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
-) as { version: string };
+) as { version: string; agentage: { id: string } };
+const { id } = agentage;
 const AGCID = /^[A-Za-z0-9._:-]{8,128}$/;
 // The dev issuer of `up`, and the 401 challenge naming the resource document (C5).
 const ISSUER = 'http://localhost:4281';
@@ -21,7 +22,7 @@ const mcp = (method: string) => ({
   data: { jsonrpc: '2.0', id: 1, method, params: {} },
 });
 
-test('discovery is valid, lists five images by digest, a postgres store and probe__echo', async ({
+test('discovery is valid, lists five images by digest, a postgres store and the echo tool', async ({
   request,
 }) => {
   const res = await request.get('/.well-known/agentage-extension.json', {
@@ -30,18 +31,18 @@ test('discovery is valid, lists five images by digest, a postgres store and prob
   expect(res.status()).toBe(200);
   expect(res.headers()['access-control-allow-origin']).toBe('*');
   const doc = DiscoveryDocumentSchema.parse(await res.json());
-  const tools = [{ name: 'probe__echo', scope: 'probe:read' }];
-  expect(doc).toMatchObject({ id: 'probe', version, tools, commands: ['ping'] });
+  const tools = [{ name: `${id}__echo`, scope: `${id}:read` }];
+  expect(doc).toMatchObject({ id, version, tools, commands: ['ping'] });
   expect(Object.keys(doc.parts).sort()).toEqual(['api', 'mcp', 'pages', 'store', 'ui', 'worker']);
   expect(doc.parts.store).toEqual({ kind: 'postgres', migrations: 1 });
 });
 
-test('the resource document names the issuer and probe:read', async ({ request }) => {
+test('the resource document names the issuer and the read scope', async ({ request }) => {
   const res = await request.get('/.well-known/oauth-protected-resource');
   expect(await res.json()).toEqual({
     resource: 'http://localhost:4280',
     authorization_servers: ['http://issuer:3000'],
-    scopes_supported: ['probe:read'],
+    scopes_supported: [`${id}:read`],
     bearer_methods_supported: ['header'],
   });
 });
@@ -49,15 +50,15 @@ test('the resource document names the issuer and probe:read', async ({ request }
 test('pages names the version and the commit', async ({ request }) => {
   const res = await request.get('/');
   expect(res.headers()['content-type']).toContain('text/html');
-  expect(await res.text()).toMatch(new RegExp(`probe ${version} · <code>[0-9a-f]{40}</code>`));
+  expect(await res.text()).toMatch(new RegExp(`${id} ${version} · <code>[0-9a-f]{40}</code>`));
 });
 
-test('the api answers echo to a probe:read token and ticks to anyone, with an agcid', async ({
+test('the api answers echo to a read token and ticks to anyone, with an agcid', async ({
   request,
 }) => {
   const none = await request.get('/api/v1/echo?msg=hi');
   expect([none.status(), none.headers()['www-authenticate']]).toEqual([401, RESOURCE]);
-  const minted = await request.post(`${ISSUER}/token`, { data: { scope: 'probe:read' } });
+  const minted = await request.post(`${ISSUER}/token`, { data: { scope: `${id}:read` } });
   const { token } = (await minted.json()) as { token: string };
   const echo = await request.get('/api/v1/echo?msg=hi', {
     headers: { authorization: `Bearer ${token}` },
@@ -70,15 +71,15 @@ test('the api answers echo to a probe:read token and ticks to anyone, with an ag
   expect(ErrorEnvelopeSchema.parse(await bad.json()).error.code).toBe('VALIDATION_ERROR');
 });
 
-test('/mcp is POST only and lists probe__echo anonymously', async ({ request }) => {
+test('/mcp is POST only and lists the echo tool anonymously', async ({ request }) => {
   expect((await request.get('/mcp')).status()).toBe(405);
   const res = await request.post('/mcp', mcp('tools/list'));
   expect(res.status()).toBe(200);
-  expect(await res.text()).toContain('"name":"probe__echo"');
+  expect(await res.text()).toContain(`"name":"${id}__echo"`);
 });
 
 test('the ui bundle and the harness are served, immutable', async ({ request }) => {
-  for (const file of ['probe.js', 'harness.html', 'widgets.json']) {
+  for (const file of [`${id}.js`, 'harness.html', 'widgets.json']) {
     const res = await request.get(`/ui/${version}/${file}`);
     expect(res.status(), file).toBe(200);
     expect(res.headers()['cache-control'], file).toContain('immutable');
