@@ -9,21 +9,20 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { create } from './index.js';
 
-const SNAPSHOT = new URL('../../probe.mcpc.json', import.meta.url);
-const { version } = JSON.parse(
+const { version, agentage } = JSON.parse(
   readFileSync(new URL('../../package.json', import.meta.url), 'utf8')
-) as {
-  version: string;
-};
-const ctx = createTestContext({ extension: { id: 'probe', version } });
+) as { version: string; agentage: { id: string } };
+const { id } = agentage;
+const SNAPSHOT = new URL(`../../${id}.mcpc.json`, import.meta.url);
+const ctx = createTestContext({ extension: { id, version } });
 let server: Awaited<ReturnType<typeof startTestMcp>>;
 beforeAll(async () => {
   server = await startTestMcp({ create, ctx });
 });
 afterAll(() => server.close());
 
-// The contract: what each protocol version's client lists equals the committed probe.mcpc.json.
-describe('probe.mcpc.json', () => {
+// The contract: what each protocol version's client lists equals the committed snapshot.
+describe(`${id}.mcpc.json`, () => {
   for (const version of PROTOCOL_VERSIONS) {
     it(`a ${version} client lists exactly the committed snapshot`, async () => {
       const snapshot = await mcpSnapshot(`${server.url}/mcp`, version);
@@ -34,9 +33,9 @@ describe('probe.mcpc.json', () => {
   }
 });
 
-describe('probe__echo', () => {
-  it('needs probe:read: the scope it declares beside its schemas (C7)', () => {
-    const recorded = createTestContext({ extension: { id: 'probe' } });
+describe(`${id}__echo`, () => {
+  it(`needs ${id}:read: the scope it declares beside its schemas (C7)`, () => {
+    const recorded = createTestContext({ extension: { id } });
     create(recorded);
     expect(recorded.tools.map(({ name, spec }) => [name, spec.scope])).toEqual([['echo', 'read']]);
   });

@@ -17,10 +17,9 @@ const sources = (): [string, string][] =>
 const relativeImports = (text: string): string[] =>
   [...text.matchAll(/from '(\.[^']+)'/g)].map((match) => match[1] ?? '');
 
-describe('probe manifest', () => {
+describe('the manifest', () => {
   it('is a valid agentage manifest with all seven parts', () => {
     const manifest = validateManifest(pkg);
-    expect(manifest.agentage.id).toBe('probe');
     expect(imageParts(manifest)).toEqual(['pages', 'ui', 'api', 'mcp', 'worker']);
     expect(manifest.agentage.parts).toEqual({
       ...{ pages: true, ui: true, api: true, mcp: true, worker: true, cli: true },

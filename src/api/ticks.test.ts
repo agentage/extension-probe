@@ -9,7 +9,7 @@ import { encodeCursor } from '../lib/ticks.js';
 import { create } from './index.js';
 
 const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/;
-const ctx = createTestContext({ extension: { id: 'probe' }, store: true });
+const ctx = createTestContext({ store: true });
 let server: Awaited<ReturnType<typeof startTestServer>>;
 // The store boots (WASM, migrations, seed) on first use: here, not inside a test's 5 s.
 beforeAll(async () => {

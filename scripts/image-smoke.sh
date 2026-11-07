@@ -5,13 +5,14 @@
 set -euo pipefail
 
 commit="${1:?usage: scripts/image-smoke.sh <commit>}"
+id=$(jq -r .agentage.id package.json)
 version=$(jq -r .version package.json)
-probe="fetch('http://127.0.0.1:3000/health').then(async (r) => { process.stdout.write(await r.text()); })"
+health_js="fetch('http://127.0.0.1:3000/health').then(async (r) => { process.stdout.write(await r.text()); })"
 fail=0
 for part in pages ui api mcp worker; do
-  image="ghcr.io/agentage/probe-$part:$version"
+  image="ghcr.io/agentage/$id-$part:$version"
   label=$(docker inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
-  health=$(docker compose -f .agentage/compose.json exec -T "$part" node -e "$probe")
+  health=$(docker compose -f .agentage/compose.json exec -T "$part" node -e "$health_js")
   status=$(jq -r .data.status <<<"$health")
   checks=$(jq -c .data.checks <<<"$health")
   if [ "$label" = "$commit" ] && [ "$(jq -r .data.commit <<<"$health")" = "$commit" ] && [ "$status" = ok ] && [ "$(jq -r .data.part <<<"$health")" = "$part" ]; then
