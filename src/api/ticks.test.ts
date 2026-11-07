@@ -59,6 +59,7 @@ describe('GET /api/v1/ticks', () => {
       'cursor=abc',
       'cursor=2',
       `cursor=${encodeCursor('1x')}`,
+      `cursor=${encodeCursor('9223372036854775808')}`,
       'other=1',
     ]) {
       const res = await server.fetch(`/api/v1/ticks?${query}`);
