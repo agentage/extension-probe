@@ -71,7 +71,7 @@ test('the api answers echo to a read token and ticks to anyone, with an agcid', 
   expect(ErrorEnvelopeSchema.parse(await bad.json()).error.code).toBe('VALIDATION_ERROR');
 });
 
-test('/mcp is POST only and lists probe__echo anonymously', async ({ request }) => {
+test('/mcp is POST only and lists the echo tool anonymously', async ({ request }) => {
   expect((await request.get('/mcp')).status()).toBe(405);
   const res = await request.post('/mcp', mcp('tools/list'));
   expect(res.status()).toBe(200);

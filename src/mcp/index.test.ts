@@ -51,7 +51,7 @@ describe(`${id}__echo`, () => {
         jsonrpc: '2.0',
         id: 1,
         method: 'tools/call',
-        params: { name: 'probe__echo', arguments: { msg: 'hi' } },
+        params: { name: `${id}__echo`, arguments: { msg: 'hi' } },
       }),
     });
     const data = (await res.text()).split('\n').find((line) => line.startsWith('data:')) ?? '';

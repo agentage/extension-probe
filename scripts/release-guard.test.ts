@@ -13,8 +13,10 @@ import { describe, expect, it } from 'vitest';
 
 const GUARD = new URL('./release-guard.sh', import.meta.url).pathname;
 const SHA = 'a'.repeat(40);
-const { id } = JSON.parse(
-  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+const { id } = (
+  JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+    agentage: { id: string };
+  }
 ).agentage;
 const RECORD = { id, version: '0.1.0', commit: SHA, parts: {} };
 const API = `ghcr.io/agentage/${id}-api:0.1.0`;
