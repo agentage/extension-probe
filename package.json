@@ -38,7 +38,7 @@
           {
             "name": "msg",
             "type": "string",
-            "optional": true
+            "required": false
           }
         ]
       }

@@ -160,7 +160,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "pattern": "^[0-9]{1,19}$"
+              "pattern": "^[A-Za-z0-9_-]{1,26}$"
             }
           }
         ],
@@ -198,10 +198,29 @@
                     },
                     "meta": {
                       "type": "object",
-                      "propertyNames": {
-                        "type": "string"
+                      "properties": {
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "nextCursor": {
+                              "description": "opaque; absent on the last page",
+                              "type": "string"
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "total": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": ["limit", "total"]
+                        }
                       },
-                      "additionalProperties": {}
+                      "required": ["pagination"]
                     }
                   },
                   "required": ["success", "data"]
