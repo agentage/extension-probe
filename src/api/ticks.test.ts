@@ -5,6 +5,7 @@ import {
   startTestServer,
 } from '@agentage/extension';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { encodeCursor } from '../lib/ticks.js';
 import { create } from './index.js';
 
 const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/;
@@ -38,8 +39,11 @@ describe('GET /api/v1/ticks', () => {
     await ctx.store.query("insert into ticks (job) values ('tick'), ('tick')");
     const first = await get('/api/v1/ticks?limit=2');
     expect((first.body.data as { id: string }[]).map((t) => t.id)).toEqual(['3', '2']);
-    expect(first.body.meta).toEqual({ pagination: { limit: 2, total: 3, nextCursor: '2' } });
-    const next = await get('/api/v1/ticks?limit=2&cursor=2');
+    expect(encodeCursor('2')).toBe('Mg');
+    expect(first.body.meta).toEqual({
+      pagination: { limit: 2, total: 3, nextCursor: encodeCursor('2') },
+    });
+    const next = await get('/api/v1/ticks?limit=2&cursor=Mg');
     expect((next.body.data as { id: string }[]).map((t) => t.id)).toEqual(['1']);
     expect(next.body.meta).toEqual({ pagination: { limit: 2, total: 3 } });
   });
@@ -48,7 +52,15 @@ describe('GET /api/v1/ticks', () => {
     expect((await get('/api/v1/ticks?limit=500')).body.meta).toEqual({
       pagination: { limit: 200, total: 3 },
     });
-    for (const query of ['limit=0', 'limit=1.5', 'limit=x', 'cursor=abc', 'other=1']) {
+    for (const query of [
+      'limit=0',
+      'limit=1.5',
+      'limit=x',
+      'cursor=abc',
+      'cursor=2',
+      `cursor=${encodeCursor('1x')}`,
+      'other=1',
+    ]) {
       const res = await server.fetch(`/api/v1/ticks?${query}`);
       expect(res.status, query).toBe(400);
       expect(ErrorEnvelopeSchema.parse(await res.json()).error.code, query).toBe(

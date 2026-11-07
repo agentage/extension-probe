@@ -32,7 +32,15 @@ const parameters = (schema: z.ZodObject) => {
   }));
 };
 
-const ok = (data: z.ZodType) => ({
+const PaginationSchema = z.object({
+  pagination: z.object({
+    nextCursor: z.string().optional().describe('opaque; absent on the last page'),
+    limit: z.int(),
+    total: z.int(),
+  }),
+});
+
+const ok = (data: z.ZodType, meta: z.ZodType = z.record(z.string(), z.unknown())) => ({
   description: 'the envelope',
   content: {
     'application/json': {
@@ -40,7 +48,7 @@ const ok = (data: z.ZodType) => ({
         z.object({
           success: z.literal(true),
           data,
-          meta: z.record(z.string(), z.unknown()).optional(),
+          meta: meta.optional(),
         })
       ),
     },
@@ -74,7 +82,7 @@ const generated = () => ({
         operationId: 'ticks',
         security: [],
         parameters: parameters(TicksQuerySchema),
-        responses: { '200': ok(z.array(TickSchema)), '400': invalid },
+        responses: { '200': ok(z.array(TickSchema), PaginationSchema), '400': invalid },
       },
     },
   },
