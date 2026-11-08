@@ -48,7 +48,7 @@ What CI runs, in order, with the counts a green run prints (2026-11-08):
 
 ```bash
 npm run verify                                     # 19 tests passed, coverage over 70 %
-npx agentage extension check                       # six rules ok, PASS probe 0.5.0 conforms (6 rules)
+npx agentage extension check                       # six rules ok, PASS probe 0.5.1 conforms (6 rules)
 npx agentage extension up                          # ready    7 parts healthy    <n> s (each /health body asserted)
 npx playwright install chromium                    # once; a bare Linux also needs --with-deps
 npm run test:e2e                                   # 10 passed (smoke and the widget tests)
