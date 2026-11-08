@@ -1,9 +1,5 @@
-import {
-  createTestContext,
-  ErrorEnvelopeSchema,
-  OkEnvelopeSchema,
-  startTestServer,
-} from '@agentage/extension';
+import { ErrorEnvelopeSchema, OkEnvelopeSchema } from '@agentage/extension/contracts';
+import { createTestContext, startTestServer } from '@agentage/extension';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { encodeCursor } from '../lib/ticks.js';
 import { create } from './index.js';

@@ -3,7 +3,7 @@ import {
   DiscoveryDocumentSchema,
   ErrorEnvelopeSchema,
   OkEnvelopeSchema,
-} from '@agentage/extension';
+} from '@agentage/extension/contracts';
 import { expect, test } from '@playwright/test';
 
 // Boot-proving smoke of every part through the local gateway: no secrets, the URL layout as on next.

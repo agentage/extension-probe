@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
-import { imageParts, validateManifest } from '@agentage/extension';
+import { imageParts, validateManifest } from '@agentage/extension/tool';
 import { describe, expect, it } from 'vitest';
 import * as ui from './ui/index.js';
 
