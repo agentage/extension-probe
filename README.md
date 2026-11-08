@@ -47,10 +47,9 @@ refused while the first holds 4280. On a kept volume (`down --keep-data`) the st
 What CI runs, in order, with the counts a green run prints (2026-11-06):
 
 ```bash
-npm run verify                                     # 31 tests passed, coverage over 70 %
+npm run verify                                     # 21 tests passed, coverage over 70 %
 npx agentage extension check                       # six rules ok, PASS probe 0.5.0 conforms (6 rules)
-npx agentage extension up                          # ready    7 parts healthy    <n> s
-scripts/image-smoke.sh "$(git rev-parse HEAD)"     # 5 lines: PASS {part}  commit ...  ok
+npx agentage extension up                          # ready    7 parts healthy    <n> s (each /health body asserted)
 npx playwright install chromium                    # once; a bare Linux also needs --with-deps
 npm run test:e2e                                   # 10 passed (smoke and the widget tests)
 ```
@@ -68,8 +67,8 @@ checkout; without it the cli part tests skip. The 5 skipped need a deployed rele
 version, the release commit, the release record twice, the HTTPS redirect). CI fails a gate that
 executed fewer than 30 tests or none of the cli part, and the job is bounded at 10 minutes (about 3
 today).
-Dependabot runs get no secrets, so they skip the agentage/e2e checkout and the gate (`up`, the
-image smoke and `npm run test:e2e` still run).
+Dependabot runs get no secrets, so they skip the agentage/e2e checkout and the gate (`up` and
+`npm run test:e2e` still run).
 
 ## Release
 
@@ -78,4 +77,4 @@ pushes `ghcr.io/agentage/probe-{pages,ui,api,mcp,worker}:{version}`, attaches th
 the five digests to the GitHub release as `agentage-extension.json`, and publishes
 `@agentage/extension-probe` to npm with provenance. A version's images never change: a re-run keeps
 the released images and record and only retries npm, and a tag moved to another commit is refused
-(`scripts/release-guard.sh`); a fix ships as a new version.
+(`agentage extension release`); a fix ships as a new version.

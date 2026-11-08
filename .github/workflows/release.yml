@@ -1,9 +1,8 @@
 name: Release
 
-# A v* tag: the kit tool builds and pushes one image per part to GHCR, the build record with the
-# digests becomes the release asset agentage-extension.json, then the package is published to npm
-# with OIDC trusted publishing (npmjs.com trusted publisher = this file). A re-run of a released
-# version keeps its images and record and only retries npm (scripts/release-guard.sh).
+# A v* tag: agentage extension release refuses the template, a commit off master and a tag that is
+# not the version, keeps a released version (re-run = npm only), then pushes the images, attaches
+# agentage-extension.json to the release and publishes to npm with OIDC (npm = this file).
 on:
   push:
     tags: ['v*']
@@ -23,88 +22,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Tag commit must be on master
-        run: |
-          git fetch origin master
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/master || { echo "::error::$GITHUB_SHA is not on master"; exit 1; }
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: 'npm'
-
-      - name: The tag is the package version
-        run: |
-          version=$(node -p "require('./package.json').version")
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::tag $GITHUB_REF_NAME is not v$version, the package.json version; tag the commit that sets it"
-            exit 1
-          fi
-
-      - name: Install
-        run: npm ci --ignore-scripts
-
-      - name: Verify
-        run: npm run verify
-
-      - name: Log in to GHCR
-        env:
+      - run: npm ci --ignore-scripts && npm run verify
+      - run: npm install -g npm@11 # OIDC needs npm >= 11.5.1
+      - env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-
-      - name: A released version is never rebuilt
-        id: guard
-        env:
+      - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          decision=$(scripts/release-guard.sh "$GITHUB_REF_NAME" "$GITHUB_SHA")
-          echo "decision=$decision" >> "$GITHUB_OUTPUT"
-          echo "release guard: $decision" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Build and push the images, write the record
-        if: steps.guard.outputs.decision == 'build'
-        # The cli and the kit tool that writes the recipe are the lockfile's, never a fresh resolve.
-        run: |
-          node_modules/.bin/agentage extension build --push
-          cat dist/agentage-extension.json
-
-      - name: Release asset agentage-extension.json
-        if: steps.guard.outputs.decision == 'build'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" dist/agentage-extension.json
-          else
-            gh release create "$GITHUB_REF_NAME" dist/agentage-extension.json \
-              --title "$GITHUB_REF_NAME" --notes "Images by digest: agentage-extension.json"
-          fi
-
-      - name: Upgrade npm
-        run: npm install -g npm@latest && npm --version # OIDC needs npm >= 11.5.1
-
-      - name: Publish to npm (skips a version already published)
-        env:
-          # TEMPORARY: stages the first publish of a new name; delete once @agentage/widget is on npm
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -n "${NPM_TOKEN:-}" ]; then
-            # Single quotes on purpose: npm expands ${NPM_TOKEN} itself, the token never lands on disk
-            echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> ~/.npmrc
-            echo "first-publish token in use" >> "$GITHUB_STEP_SUMMARY"
-          fi
-          name=$(node -p "require('./package.json').name")
-          version=$(node -p "require('./package.json').version")
-          if npm view "${name}@${version}" version >/dev/null 2>&1; then
-            echo "${name}@${version} is already on npm"
-            exit 0
-          fi
-          if [ -n "${NPM_TOKEN:-}" ] && ! npm view "${name}" name >/dev/null 2>&1; then npm stage publish --access public --provenance; elif ! npm publish --access public --provenance; then echo "direct publish of ${name}@${version} not authorized (no validated trusted publisher): staging it for approval"; npm stage publish --access public --provenance; fi
-          echo "published ${name}@${version}" >> "$GITHUB_STEP_SUMMARY"
+        run: node_modules/.bin/agentage extension release # the lockfile's cli, never a fresh resolve

@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import {
   canonical,
   createTestContext,
@@ -26,8 +26,6 @@ describe(`${id}.mcpc.json`, () => {
   for (const version of PROTOCOL_VERSIONS) {
     it(`a ${version} client lists exactly the committed snapshot`, async () => {
       const snapshot = await mcpSnapshot(`${server.url}/mcp`, version);
-      if (process.env['UPDATE_SNAPSHOT'])
-        writeFileSync(SNAPSHOT, `${JSON.stringify(snapshot, null, 2)}\n`);
       expect(snapshot).toEqual(canonical(JSON.parse(readFileSync(SNAPSHOT, 'utf8'))));
     });
   }
@@ -41,27 +39,6 @@ describe(`${id}__echo`, () => {
   });
 
   it('answers pong and the message', async () => {
-    const res = await server.fetch('/mcp', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        accept: 'application/json, text/event-stream',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'tools/call',
-        params: { name: `${id}__echo`, arguments: { msg: 'hi' } },
-      }),
-    });
-    const data = (await res.text()).split('\n').find((line) => line.startsWith('data:')) ?? '';
-    expect(JSON.parse(data.slice(5))).toEqual({
-      jsonrpc: '2.0',
-      id: 1,
-      result: {
-        content: [{ type: 'text', text: '{"msg":"pong hi"}' }],
-        structuredContent: { msg: 'pong hi' },
-      },
-    });
+    expect(await server.call('echo', { msg: 'hi' })).toEqual({ msg: 'pong hi' });
   });
 });

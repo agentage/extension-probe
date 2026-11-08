@@ -77,9 +77,6 @@ jobs:
       - name: agentage extension up (the release recipes, store, dev issuer, gateway)
         run: node_modules/.bin/agentage extension up
 
-      - name: Image smoke (each part carries this commit, /health ok on loopback)
-        run: scripts/image-smoke.sh "$GITHUB_SHA"
-
       - name: Smoke and the widget a11y test through the local gateway (e2e/)
         run: npm run test:e2e
 
