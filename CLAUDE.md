@@ -14,16 +14,16 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 - The manifest is the `agentage` block of `package.json`.
 - `probe.mcpc.json` and `openapi.json` are committed contracts: `src/mcp/index.test.ts` diffs the
   tool list from a 2025-11-25 and a 2026-07-28 client, `src/api/openapi.test.ts` the OpenAPI
-  generated from the Zod schemas; `UPDATE_SNAPSHOT=1 npm test` rewrites both (bumping the version
-  changes both).
+  generated from the Zod schemas; to release, bump the version in `package.json`, run
+  `npx agentage extension check --write` and `npm run format`, commit, tag.
 - The release record `dist/agentage-extension.json` (images by digest) is written by
   `build --push` only, in `release.yml`; never by hand, never committed. `up` writes its own
-  `.agentage/record.json` (ignored). `scripts/release-guard.sh` keeps a released version's images
+  `.agentage/record.json` (ignored). `agentage extension release` keeps a released version's images
   and record: never move a `v*` tag, release a new version.
 
 ## Commands
 
-- `npm run verify`; `agentage extension up`, then `scripts/image-smoke.sh <commit>` and
+- `npm run verify`; `agentage extension up` (asserts each part's `/health` body), then
   `npm run test:e2e` (the Playwright smoke and the widget axe test through `localhost:4280`);
   `agentage extension down` removes this working copy's compose project only (named in
   `.agentage/compose.json`, one per checkout), so scripts address it with `-f`, never `-p`
@@ -31,9 +31,6 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
   keep a trace and fails a test that passed on it (`failOnFlakyTests`); a test that needs
   the store boots it in `beforeAll` (PGlite's first use is a WASM boot), never inside a test's 5 s;
   the README's Verify section holds the counts a green run prints: change them with the tests
-- `scripts/release-guard.sh` bounds every GitHub and registry call (`GUARD_TIMEOUT`, 60 s, then
-  SIGKILL after 5 s; it refuses to run without GNU `timeout`); a timeout stops the release like
-  any "cannot tell", it never counts as "not released"
 - `@agentage/cli` is an exact devDependency: CI and the release run `node_modules/.bin/agentage`,
   so the cli and the kit tool that writes the image recipe are this lockfile's; a cli or kit patch
   reaches the images only through a probe commit (Dependabot's weekly group)
