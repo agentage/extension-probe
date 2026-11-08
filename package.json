@@ -76,7 +76,7 @@
     "prepublishOnly": "npm run verify"
   },
   "dependencies": {
-    "@agentage/extension": "^0.4.3",
+    "@agentage/extension": "0.5.0",
     "express": "^5.1.0",
     "zod": "^4.2.0"
   },
