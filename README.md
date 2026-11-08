@@ -44,10 +44,10 @@ refused while the first holds 4280. On a kept volume (`down --keep-data`) the st
 
 ## Verify
 
-What CI runs, in order, with the counts a green run prints (2026-11-06):
+What CI runs, in order, with the counts a green run prints (2026-11-08):
 
 ```bash
-npm run verify                                     # 21 tests passed, coverage over 70 %
+npm run verify                                     # 19 tests passed, coverage over 70 %
 npx agentage extension check                       # six rules ok, PASS probe 0.5.0 conforms (6 rules)
 npx agentage extension up                          # ready    7 parts healthy    <n> s (each /health body asserted)
 npx playwright install chromium                    # once; a bare Linux also needs --with-deps
@@ -78,3 +78,6 @@ the five digests to the GitHub release as `agentage-extension.json`, and publish
 `@agentage/extension-probe` to npm with provenance. A version's images never change: a re-run keeps
 the released images and record and only retries npm, and a tag moved to another commit is refused
 (`agentage extension release`); a fix ships as a new version.
+
+To release: bump `version` in `package.json`, run `npx agentage extension check --write` and
+`npm run format`, commit, tag `v<version>`.
