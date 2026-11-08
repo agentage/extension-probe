@@ -1,4 +1,5 @@
-import { createTestContext, ErrorEnvelopeSchema, startTestServer } from '@agentage/extension';
+import { ErrorEnvelopeSchema } from '@agentage/extension/contracts';
+import { createTestContext, startTestServer } from '@agentage/extension';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { create } from './index.js';
 

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { createTestContext, ErrorEnvelopeSchema } from '@agentage/extension';
+import { ErrorEnvelopeSchema } from '@agentage/extension/contracts';
+import { createTestContext } from '@agentage/extension';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { EchoQuerySchema } from '../lib/echo.schema.js';
