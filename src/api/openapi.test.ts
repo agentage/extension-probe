@@ -4,6 +4,7 @@ import { createTestContext } from '@agentage/extension';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { EchoQuerySchema } from '../lib/echo.schema.js';
+import { EmitBodySchema } from '../lib/emit.schema.js';
 import { TicksQuerySchema } from '../lib/ticks.js';
 import { create } from './index.js';
 
@@ -83,6 +84,21 @@ const generated = () => ({
         security: [],
         parameters: parameters(TicksQuerySchema),
         responses: { '200': ok(z.array(TickSchema), PaginationSchema), '400': invalid },
+      },
+    },
+    '/api/v1/emit': {
+      post: {
+        operationId: 'emit',
+        security: [{ pat: [`${id}:write`] }],
+        requestBody: {
+          required: false,
+          content: { 'application/json': { schema: json(EmitBodySchema) } },
+        },
+        responses: {
+          '200': ok(z.object({ emitted: z.array(z.enum(['log', 'span', 'event'])) })),
+          '202': ok(z.object({ exiting: z.literal(true) })),
+          '400': invalid,
+        },
       },
     },
   },

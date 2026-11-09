@@ -37,12 +37,14 @@ test('discovery is valid, lists five images by digest, a postgres store and the 
   expect(doc.parts.store).toEqual({ kind: 'postgres', migrations: 1 });
 });
 
-test('the resource document names the issuer and the read scope', async ({ request }) => {
+test('the resource document names the issuer and the read and write scopes', async ({
+  request,
+}) => {
   const res = await request.get('/.well-known/oauth-protected-resource');
   expect(await res.json()).toEqual({
     resource: 'http://localhost:4280',
     authorization_servers: ['http://issuer:3000'],
-    scopes_supported: [`${id}:read`],
+    scopes_supported: [`${id}:read`, `${id}:write`],
     bearer_methods_supported: ['header'],
   });
 });
@@ -69,6 +71,25 @@ test('the api answers echo to a read token and ticks to anyone, with an agcid', 
   expect(ticks.data).toEqual([expect.objectContaining({ job: expect.any(String) })]);
   const bad = await request.get('/api/v1/ticks?limit=0');
   expect(ErrorEnvelopeSchema.parse(await bad.json()).error.code).toBe('VALIDATION_ERROR');
+});
+
+test('emit takes a write token only and names the three lines it wrote', async ({ request }) => {
+  const token = async (scope: string) => {
+    const minted = await request.post(`${ISSUER}/token`, { data: { scope } });
+    return ((await minted.json()) as { token: string }).token;
+  };
+  const emit = async (scope: string) =>
+    request.post('/api/v1/emit', { headers: { authorization: `Bearer ${await token(scope)}` } });
+  const read = await emit(`${id}:read`);
+  expect([read.status(), ErrorEnvelopeSchema.parse(await read.json()).error.code]).toEqual([
+    403,
+    'FORBIDDEN',
+  ]);
+  const write = await emit(`${id}:write`);
+  expect(await write.json()).toEqual({
+    success: true,
+    data: { emitted: ['log', 'span', 'event'] },
+  });
 });
 
 test('/mcp is POST only and lists the echo tool anonymously', async ({ request }) => {

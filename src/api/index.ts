@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ok, parse, type PartContext } from '@agentage/extension';
 import { EchoQuerySchema } from '../lib/echo.schema.js';
 import { recentTicks, TicksQuerySchema } from '../lib/ticks.js';
+import { emit } from './emit.js';
 
 // The kit mounts this router at /api/v1/.
 export const create = (ctx: PartContext): Router => {
@@ -16,5 +17,6 @@ export const create = (ctx: PartContext): Router => {
     const pagination = { limit: query.limit, total, ...(nextCursor ? { nextCursor } : {}) };
     res.json(ok(ticks, { pagination }));
   });
+  router.post('/emit', emit(ctx));
   return router;
 };
