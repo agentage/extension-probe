@@ -6,15 +6,15 @@ extension copies. Each part is only `create(ctx)` (the ui part a `widgets` map);
 discovery, the envelope, the store connection, the scheduler and the command line. There is no
 Dockerfile and no compose file: the kit's tool builds one image per part and runs them locally.
 
-| Part   | Source                                                                    | Serves                                                                                                                                                                                        |
-| ------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| pages  | [`src/pages`](src/pages/index.ts)                                         | `/`: `probe {version} · {commit}`                                                                                                                                                             |
-| ui     | [`src/ui`](src/ui/index.ts) (`<probe-echo>`, React on `@agentage/widget`) | `/ui/{version}/probe.js`, `harness.html`                                                                                                                                                      |
-| api    | [`src/api`](src/api/index.ts)                                             | `GET /api/v1/echo?msg=` (`probe:read`), `GET /api/v1/ticks?limit=&cursor=`, `POST /api/v1/emit` (`probe:write`; `exit` stops the part, `up` does not restart it: run it last), `openapi.json` |
-| mcp    | [`src/mcp`](src/mcp/index.ts)                                             | `POST /mcp`: `probe__echo` (`probe:read`; [`probe.mcpc.json`](probe.mcpc.json))                                                                                                               |
-| worker | [`src/worker`](src/worker/index.ts)                                       | job `tick`, every minute, a row in `ticks`                                                                                                                                                    |
-| store  | [`migrations/`](migrations), [`seeds/`](seeds)                            | postgres; the api image's `node dist/store/migrate.js` applies them                                                                                                                           |
-| cli    | [`src/cli`](src/cli/index.ts)                                             | `agentage ping [msg]` prints `pong`                                                                                                                                                           |
+| Part   | Source                                                                    | Serves                                                                                                                                                                                                                                |
+| ------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| pages  | [`src/pages`](src/pages/index.ts)                                         | `/`: `probe {version} · {commit}`                                                                                                                                                                                                     |
+| ui     | [`src/ui`](src/ui/index.ts) (`<probe-echo>`, React on `@agentage/widget`) | `/ui/{version}/probe.js`, `harness.html`                                                                                                                                                                                              |
+| api    | [`src/api`](src/api/index.ts)                                             | `GET /api/v1/echo?msg=` (`probe:read`), `GET /api/v1/ticks?limit=&cursor=`, `POST /api/v1/emit` (`probe:write`; `exit` ends the part cleanly after its 202, the estate restarts it, local `up` does not: run it last), `openapi.json` |
+| mcp    | [`src/mcp`](src/mcp/index.ts)                                             | `POST /mcp`: `probe__echo` (`probe:read`; [`probe.mcpc.json`](probe.mcpc.json))                                                                                                                                                       |
+| worker | [`src/worker`](src/worker/index.ts)                                       | job `tick`, every minute, a row in `ticks`                                                                                                                                                                                            |
+| store  | [`migrations/`](migrations), [`seeds/`](seeds)                            | postgres; the api image's `node dist/store/migrate.js` applies them                                                                                                                                                                   |
+| cli    | [`src/cli`](src/cli/index.ts)                                             | `agentage ping [msg]` prints `pong`                                                                                                                                                                                                   |
 
 ## Install and run
 
@@ -47,7 +47,7 @@ refused while the first holds 4280. On a kept volume (`down --keep-data`) the st
 What CI runs, in order, with the counts a green run prints (2026-11-09):
 
 ```bash
-npm run verify                                     # 24 tests passed, coverage over 70 %
+npm run verify                                     # 23 tests passed, coverage over 70 %
 npx agentage extension check                       # six rules ok, PASS probe 0.5.3 conforms (6 rules)
 npx agentage extension up                          # ready    7 parts healthy    <n> s (each /health body asserted)
 npx playwright install chromium                    # once; a bare Linux also needs --with-deps
