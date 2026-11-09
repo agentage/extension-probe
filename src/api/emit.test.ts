@@ -20,7 +20,7 @@ afterAll(async () => {
 beforeEach(() => {
   ctx.logs.length = 0;
   ctx.spans.length = 0;
-  vi.mocked(crash).mockClear();
+  vi.mocked(crash).mockReset();
 });
 
 const post = (agcid: string, body?: object) =>
@@ -61,10 +61,18 @@ describe('POST /api/v1/emit', () => {
   });
 
   it('with exit answers 202, then calls the exit hook once the answer is sent', async () => {
+    // The kit's request line is written on finish: present when crash runs = the 202 went first.
+    const sent: unknown[] = [];
+    vi.mocked(crash).mockImplementation(() => {
+      sent.push(
+        ...ctx.logs.filter(({ message }) => message === 'request').map(({ fields }) => fields)
+      );
+    });
     const res = await post('emit-test-3', { exit: true });
     expect(res.status).toBe(202);
     expect(await res.json()).toEqual({ success: true, data: { exiting: true } });
     await vi.waitFor(() => expect(crash).toHaveBeenCalledTimes(1));
+    expect(sent).toEqual([expect.objectContaining({ agcid: 'emit-test-3', status: 202 })]);
   });
 
   it('refuses an unknown or mistyped field', async () => {

@@ -6,20 +6,15 @@ extension copies. Each part is only `create(ctx)` (the ui part a `widgets` map);
 discovery, the envelope, the store connection, the scheduler and the command line. There is no
 Dockerfile and no compose file: the kit's tool builds one image per part and runs them locally.
 
-| Part   | Source                                                                    | Serves                                                                                                                          |
-| ------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| pages  | [`src/pages`](src/pages/index.ts)                                         | `/`: `probe {version} · {commit}`                                                                                               |
-| ui     | [`src/ui`](src/ui/index.ts) (`<probe-echo>`, React on `@agentage/widget`) | `/ui/{version}/probe.js`, `harness.html`                                                                                        |
-| api    | [`src/api`](src/api/index.ts)                                             | `GET /api/v1/echo?msg=` (`probe:read`), `GET /api/v1/ticks?limit=&cursor=`, `POST /api/v1/emit` (`probe:write`), `openapi.json` |
-| mcp    | [`src/mcp`](src/mcp/index.ts)                                             | `POST /mcp`: `probe__echo` (`probe:read`; [`probe.mcpc.json`](probe.mcpc.json))                                                 |
-| worker | [`src/worker`](src/worker/index.ts)                                       | job `tick`, every minute, a row in `ticks`                                                                                      |
-| store  | [`migrations/`](migrations), [`seeds/`](seeds)                            | postgres; the api image's `node dist/store/migrate.js` applies them                                                             |
-| cli    | [`src/cli`](src/cli/index.ts)                                             | `agentage ping [msg]` prints `pong`                                                                                             |
-
-`POST /api/v1/emit` (body `{ fail?, exit? }`) writes, for the request's `agcid`, a `log` line
-(`emit {agcid}`), a `span` around `store.query`, and a `probe.emitted` event line; `fail` then
-throws `Error('forced')` (a 500 and one error line), `exit` answers 202 and the api part exits on
-the next tick (the gateway answers 502 or 503 until it is restarted).
+| Part   | Source                                                                    | Serves                                                                                                                                                                                        |
+| ------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| pages  | [`src/pages`](src/pages/index.ts)                                         | `/`: `probe {version} · {commit}`                                                                                                                                                             |
+| ui     | [`src/ui`](src/ui/index.ts) (`<probe-echo>`, React on `@agentage/widget`) | `/ui/{version}/probe.js`, `harness.html`                                                                                                                                                      |
+| api    | [`src/api`](src/api/index.ts)                                             | `GET /api/v1/echo?msg=` (`probe:read`), `GET /api/v1/ticks?limit=&cursor=`, `POST /api/v1/emit` (`probe:write`; `exit` stops the part, `up` does not restart it: run it last), `openapi.json` |
+| mcp    | [`src/mcp`](src/mcp/index.ts)                                             | `POST /mcp`: `probe__echo` (`probe:read`; [`probe.mcpc.json`](probe.mcpc.json))                                                                                                               |
+| worker | [`src/worker`](src/worker/index.ts)                                       | job `tick`, every minute, a row in `ticks`                                                                                                                                                    |
+| store  | [`migrations/`](migrations), [`seeds/`](seeds)                            | postgres; the api image's `node dist/store/migrate.js` applies them                                                                                                                           |
+| cli    | [`src/cli`](src/cli/index.ts)                                             | `agentage ping [msg]` prints `pong`                                                                                                                                                           |
 
 ## Install and run
 
