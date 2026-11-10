@@ -3,7 +3,7 @@ import { createTestContext, startTestServer } from '@agentage/extension';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { create } from './index.js';
 
-const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const AGCID = /^[0-9a-f]{32}$/;
 
 let server: Awaited<ReturnType<typeof startTestServer>>;
 beforeAll(async () => {
@@ -16,16 +16,20 @@ describe('GET /api/v1/echo', () => {
     const res = await server.fetch('/api/v1/echo?msg=hi');
     expect(res.status).toBe(200);
     expect(await res.text()).toBe('{"success":true,"data":{"msg":"hi","caller":"usr_test"}}');
-    expect(res.headers.get('agcid')).toMatch(UUID_V7);
+    expect(res.headers.get('agcid')).toMatch(AGCID);
   });
 
   it('keeps the caller agcid', async () => {
-    const res = await server.fetch('/api/v1/echo?msg=hi', { headers: { agcid: 'echo-test-1' } });
-    expect(res.headers.get('agcid')).toBe('echo-test-1');
+    const res = await server.fetch('/api/v1/echo?msg=hi', {
+      headers: { agcid: 'ec40000000000000000000000000000a' },
+    });
+    expect(res.headers.get('agcid')).toBe('ec40000000000000000000000000000a');
   });
 
   it('answers VALIDATION_ERROR without msg', async () => {
-    const res = await server.fetch('/api/v1/echo', { headers: { agcid: 'echo-test-2' } });
+    const res = await server.fetch('/api/v1/echo', {
+      headers: { agcid: 'ec40000000000000000000000000000b' },
+    });
     expect(res.status).toBe(400);
     const body: unknown = await res.json();
     expect(ErrorEnvelopeSchema.parse(body)).toEqual({
@@ -33,7 +37,7 @@ describe('GET /api/v1/echo', () => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Invalid query',
-        agcid: 'echo-test-2',
+        agcid: 'ec40000000000000000000000000000b',
         details: [{ field: 'msg', message: expect.any(String) }],
       },
     });

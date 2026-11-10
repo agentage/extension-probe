@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "probe",
-    "version": "0.5.3"
+    "version": "0.6.0"
   },
   "components": {
     "securitySchemes": {
@@ -86,18 +86,7 @@
                       "properties": {
                         "code": {
                           "type": "string",
-                          "enum": [
-                            "VALIDATION_ERROR",
-                            "UNAUTHORIZED",
-                            "FORBIDDEN",
-                            "NOT_FOUND",
-                            "CONFLICT",
-                            "PRECONDITION_FAILED",
-                            "PAYLOAD_TOO_LARGE",
-                            "RATE_LIMITED",
-                            "INTERNAL",
-                            "UNAVAILABLE"
-                          ]
+                          "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"
                         },
                         "message": {
                           "type": "string",
@@ -105,23 +94,34 @@
                         },
                         "agcid": {
                           "type": "string",
-                          "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                          "pattern": "^[0-9a-f]{32}$"
                         },
                         "details": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "field": {
-                                "type": "string"
-                              },
-                              "message": {
-                                "type": "string"
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "field": {
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["field", "message"],
+                                "additionalProperties": false
                               }
                             },
-                            "required": ["field", "message"],
-                            "additionalProperties": false
-                          }
+                            {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            }
+                          ]
                         }
                       },
                       "required": ["code", "message", "agcid"],
@@ -244,18 +244,7 @@
                       "properties": {
                         "code": {
                           "type": "string",
-                          "enum": [
-                            "VALIDATION_ERROR",
-                            "UNAUTHORIZED",
-                            "FORBIDDEN",
-                            "NOT_FOUND",
-                            "CONFLICT",
-                            "PRECONDITION_FAILED",
-                            "PAYLOAD_TOO_LARGE",
-                            "RATE_LIMITED",
-                            "INTERNAL",
-                            "UNAVAILABLE"
-                          ]
+                          "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"
                         },
                         "message": {
                           "type": "string",
@@ -263,23 +252,200 @@
                         },
                         "agcid": {
                           "type": "string",
-                          "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                          "pattern": "^[0-9a-f]{32}$"
                         },
                         "details": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "field": {
-                                "type": "string"
-                              },
-                              "message": {
-                                "type": "string"
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "field": {
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["field", "message"],
+                                "additionalProperties": false
                               }
                             },
-                            "required": ["field", "message"],
-                            "additionalProperties": false
+                            {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            }
+                          ]
+                        }
+                      },
+                      "required": ["code", "message", "agcid"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["success", "error"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/emit": {
+      "post": {
+        "operationId": "emit",
+        "security": [
+          {
+            "pat": ["probe:write"]
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fail": {
+                    "type": "boolean"
+                  },
+                  "exit": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "the envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "emitted": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["log", "span", "event"]
                           }
+                        }
+                      },
+                      "required": ["emitted"]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": ["success", "data"]
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "the envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "exiting": {
+                          "type": "boolean",
+                          "const": true
+                        }
+                      },
+                      "required": ["exiting"]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": ["success", "data"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": false
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "agcid": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{32}$"
+                        },
+                        "details": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "field": {
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["field", "message"],
+                                "additionalProperties": false
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            }
+                          ]
                         }
                       },
                       "required": ["code", "message", "agcid"],
