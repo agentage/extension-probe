@@ -48,7 +48,7 @@ What CI runs, in order, with the counts a green run prints (2026-11-09):
 
 ```bash
 npm run verify                                     # 23 tests passed, coverage over 70 %
-npx agentage extension check                       # six rules ok, PASS probe 0.6.0 conforms (6 rules)
+npx agentage extension check                       # six rules ok, PASS probe 0.6.1 conforms (6 rules)
 npx agentage extension up                          # ready    7 parts healthy    <n> s (each /health body asserted)
 npx playwright install chromium                    # once; a bare Linux also needs --with-deps
 npm run test:e2e                                   # 11 passed (smoke and the widget tests)
@@ -59,7 +59,7 @@ against the same `up`, from a checkout of that repo:
 
 ```bash
 npm ci && npx playwright install --with-deps chromium
-PROBE_DIR=/path/to/extension-probe npm run e2e -- probe gate local   # 55 passed, 5 skipped
+PROBE_DIR=/path/to/extension-probe npm run e2e -- probe gate local   # 85 passed, 5 skipped
 ```
 
 `PROBE_DIR` lets the gate read `probe.mcpc.json`, `openapi.json` and the cli part from this
