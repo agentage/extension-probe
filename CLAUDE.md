@@ -1,8 +1,8 @@
 # CLAUDE.md - agentage/extension-probe
 
-Public repo. The probe extension, the template every later extension copies; keep it minimal and
-exactly on the kit's rules. Standards: the engineering standards batch (repo-baseline, typescript,
-code-style, testing, ci-cd, backend, security); this file only adds what the tree does not say.
+Public repo. The probe extension: it has every part kind and the shape every later extension
+copies. Keep it minimal and exactly on the kit's rules. The human guide is [README.md](README.md):
+run, verify and release. This file adds only what the tree does not say.
 
 ## Rules this repo proves (the kit's `agentage extension check` and `src/manifest.test.ts`)
 
@@ -14,8 +14,8 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
 - The manifest is the `agentage` block of `package.json`.
 - `probe.mcpc.json` and `openapi.json` are committed contracts: `src/mcp/index.test.ts` diffs the
   tool list from a 2025-11-25 and a 2026-07-28 client, `src/api/openapi.test.ts` the OpenAPI
-  generated from the Zod schemas; to release, bump the version in `package.json`, run
-  `npx agentage extension check --write` and `npm run format`, commit, tag.
+  generated from the Zod schemas. Regenerate with `npx agentage extension check --write` and `npm run format`.
+  The release steps are in the README.
 - The release record `dist/agentage-extension.json` (images by digest) is written by
   `build --push` only, in `release.yml`; never by hand, never committed. `up` writes its own
   `.agentage/record.json` (ignored). `agentage extension release` keeps a released version's images
@@ -29,8 +29,7 @@ code-style, testing, ci-cd, backend, security); this file only adds what the tre
   `.agentage/compose.json`, one per checkout), so scripts address it with `-f`, never `-p`
 - a flake is fixed at its cause: the gate runs with no retries, `e2e/` retries once in CI only to
   keep a trace and fails a test that passed on it (`failOnFlakyTests`); a test that needs
-  the store boots it in `beforeAll` (PGlite's first use is a WASM boot), never inside a test's 5 s;
-  the README's Verify section holds the counts a green run prints: change them with the tests
+  the store boots it in `beforeAll` (PGlite's first use is a WASM boot), never inside a test's 5 s.
 - `@agentage/cli` is an exact devDependency: CI and the release run `node_modules/.bin/agentage`,
   so the cli and the kit tool that writes the image recipe are this lockfile's; a cli or kit patch
   reaches the images only through a probe commit (Dependabot's weekly group)
