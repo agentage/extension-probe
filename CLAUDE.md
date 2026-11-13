@@ -6,13 +6,14 @@ run, verify and release. This file adds only what the tree does not say.
 
 ## Where facts live
 
-- What each part serves, its scope and limits: `docs/parts.md`; summary in the `README.md` "Parts" table.
-- Routes, scopes, status codes, body limits: `openapi.json` (generated; never edit by hand).
-- MCP tools and their inputs: `probe.mcpc.json` (generated; never edit by hand).
-- Run it from a clone, ports, tokens: `README.md` "Run it from a clone"; what `up` does: `docs/develop.md`.
-- What CI runs: `README.md` "Verify"; the e2e gate and its `MIN_EXECUTED` floor: `docs/develop.md` "Verify", `.github/workflows/ci.yml`.
-- Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
-- Database tables, seeds and the migrate entry: `migrations/`, `seeds/`; summary in the `store` section of `docs/parts.md`.
+- The parts at a glance, the kit: `README.md` "Parts".
+- api routes, scopes, limits, `emit` `exit`/`fail`: `docs/parts.md` "api"; proof `openapi.json` (generated).
+- The MCP tool and its input: `docs/parts.md` "mcp"; proof `probe.mcpc.json` (generated).
+- pages, ui, worker, cli: `docs/parts.md` "pages", "ui", "worker", "cli"; proof `src/{part}/index.ts`.
+- Database, seeds, the migrate entry: `docs/parts.md` "store"; proof `migrations/`, `seeds/`.
+- Clone commands and tokens: `README.md` "Run it from a clone"; what `up` does, ports: `docs/develop.md` "Run it from a clone".
+- What CI runs: `README.md` "Verify"; the e2e gate, `MIN_EXECUTED`: `docs/develop.md` "Verify"; proof `.github/workflows/ci.yml`.
+- Release steps and refusals: `README.md` "Release"; proof `.github/workflows/release.yml`.
 - The manifest, commands, settings and secrets: the `agentage` block of `package.json`.
 
 Read the file named here before you read `src/`.
