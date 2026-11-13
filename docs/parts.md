@@ -26,8 +26,11 @@ Source: [`src/api`](../src/api/index.ts).
 - `GET /api/v1/echo?msg=` needs `probe:read`. `msg` is 1 to 200 characters.
 - `GET /api/v1/ticks?limit=&cursor=` returns ticks, newest first. The default limit is 50. A limit
   above 200 is clamped to 200.
+- `GET /api/v1/ticks` needs no token.
 - `POST /api/v1/emit` needs `probe:write`. With `exit`, the part answers 202 and then stops
   cleanly. The estate starts it again. Local `up` does not, so call it last.
+- `emit` also accepts `fail`. It throws after the log, span and event rows are written. The
+  answer is 500 with the error code `INTERNAL`.
 - `openapi.json` describes these routes.
 
 ## mcp
@@ -55,4 +58,4 @@ Source: [`migrations/`](../migrations), [`seeds/`](../seeds).
 
 Source: [`src/cli`](../src/cli/index.ts).
 
-- `agentage ping [msg]` prints `pong`.
+- `agentage ping [msg]` prints `pong`. With a message it prints `pong <msg>`.

@@ -57,8 +57,8 @@ npx agentage extension down              # removes the containers, network and v
 Use `npx agentage` inside the clone. A global `agentage` can be older than the pinned one and lack
 `extension up`.
 
-`up` reports 7 parts. Five run as containers: pages, ui, api, mcp and worker. `store` runs as
-postgres. `cli` runs on your machine with no container.
+`up` reports 7 parts. Five run as containers: pages, ui, api, mcp and worker. `store` is
+postgres. `cli` runs on your machine.
 
 More: [docs/develop.md](docs/develop.md#run-it-from-a-clone)
 
