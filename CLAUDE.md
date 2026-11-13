@@ -14,7 +14,7 @@ run, verify and release. This file adds only what the tree does not say.
 - The manifest is the `agentage` block of `package.json`.
 - `probe.mcpc.json` and `openapi.json` are committed contracts: `src/mcp/index.test.ts` diffs the
   tool list from a 2025-11-25 and a 2026-07-28 client, `src/api/openapi.test.ts` the OpenAPI
-  generated from the Zod schemas. Regenerate with `npx agentage extension check --write`.
+  generated from the Zod schemas. Regenerate with `npx agentage extension check --write` and `npm run format`.
   The release steps are in the README.
 - The release record `dist/agentage-extension.json` (images by digest) is written by
   `build --push` only, in `release.yml`; never by hand, never committed. `up` writes its own
