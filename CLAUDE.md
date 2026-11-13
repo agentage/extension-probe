@@ -6,13 +6,13 @@ run, verify and release. This file adds only what the tree does not say.
 
 ## Where facts live
 
-- What each part serves, its scope and limits: the part table in `README.md` (above "Run it from a clone").
+- What each part serves, its scope and limits: `docs/parts.md`; summary in the `README.md` "Parts" table.
 - Routes, scopes, status codes, body limits: `openapi.json` (generated; never edit by hand).
 - MCP tools and their inputs: `probe.mcpc.json` (generated; never edit by hand).
-- Run it from a clone, ports, tokens: `README.md` "Run it from a clone".
-- What CI runs, the e2e gate and its `MIN_EXECUTED` floor: `README.md` "Verify", `.github/workflows/ci.yml`.
+- Run it from a clone, ports, tokens: `README.md` "Run it from a clone"; what `up` does: `docs/develop.md`.
+- What CI runs: `README.md` "Verify"; the e2e gate and its `MIN_EXECUTED` floor: `docs/develop.md` "Verify", `.github/workflows/ci.yml`.
 - Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
-- Database tables, seeds and the migrate entry: `migrations/`, `seeds/`; summary in the `store` row of the part table in `README.md`.
+- Database tables, seeds and the migrate entry: `migrations/`, `seeds/`; summary in the `store` section of `docs/parts.md`.
 - The manifest, commands, settings and secrets: the `agentage` block of `package.json`.
 
 Read the file named here before you read `src/`.
