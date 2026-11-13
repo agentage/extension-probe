@@ -4,6 +4,19 @@ Public repo. The probe extension: it has every part kind and the shape every lat
 copies. Keep it minimal and exactly on the kit's rules. The human guide is [README.md](README.md):
 run, verify and release. This file adds only what the tree does not say.
 
+## Where facts live
+
+- What each part serves, its scope and limits: the part table in `README.md` (above "Run it from a clone").
+- Routes, scopes, status codes, body limits: `openapi.json` (generated; never edit by hand).
+- MCP tools and their inputs: `probe.mcpc.json` (generated; never edit by hand).
+- Run it from a clone, ports, tokens: `README.md` "Run it from a clone".
+- What CI runs, the e2e gate and its `MIN_EXECUTED` floor: `README.md` "Verify", `.github/workflows/ci.yml`.
+- Release rules and refusals: `README.md` "Release", `.github/workflows/release.yml`.
+- Database tables, seeds and the migrate entry: `migrations/`, `seeds/`; summary in the `store` row of the part table in `README.md`.
+- The manifest, commands, settings and secrets: the `agentage` block of `package.json`.
+
+Read the file named here before you read `src/`.
+
 ## Rules this repo proves (the kit's `agentage extension check` and `src/manifest.test.ts`)
 
 - A part module exports `create(ctx)` and nothing else; `src/ui/index.ts` exports `widgets` only.
