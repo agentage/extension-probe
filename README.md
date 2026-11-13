@@ -1,41 +1,49 @@
 # extension-probe
 
-The probe extension: a small agentage extension that has every part kind. It is for extension
-authors, as the proof that the shape works, and for the maintainers' tests. To start your own
-extension, use `npx @agentage/cli@latest extension create <id>`; the starting point is
+The probe is a small agentage extension that has one of every part kind. Extension authors use it
+as proof that the shape works. Maintainers test with it. To start your own
+extension, run `npx @agentage/cli@latest extension create <id>` or copy
 [agentage/extension-template](https://github.com/agentage/extension-template).
 
-To use only its command, with no clone and no Docker (no sign-in either):
+## Use its command
+
+You need the agentage command line, installed globally. You do not need a clone, Docker or a
+sign-in.
 
 ```bash
-agentage extension install probe    # from npm: @agentage/extension-probe
-agentage ping                       # pong
+npm install -g @agentage/cli
+agentage extension install probe    # installs @agentage/extension-probe from npm
+agentage ping                       # prints pong
 ```
 
-A **part** is one folder of the extension that does one job: `pages`, `ui`, `api`, `mcp`, `worker`,
-`cli`, plus `store` (postgres). Each part is only `create(ctx)` (the ui part a `widgets` map). The
-**kit**, the library [`@agentage/extension`](https://github.com/agentage/platform), owns servers,
-ports, `/health`, discovery, the response envelope, the store connection, the scheduler and the
-command line. There is no Dockerfile and no compose file: the kit's tool builds one image per part
-and runs them locally.
+## Parts
 
-| Part   | Source                                                                    | Serves                                                                                                                                                                                                                                                                                                                       |
-| ------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| pages  | [`src/pages`](src/pages/index.ts)                                         | `/`: `probe {version} · {commit}`                                                                                                                                                                                                                                                                                            |
-| ui     | [`src/ui`](src/ui/index.ts) (`<probe-echo>`, React on `@agentage/widget`) | `/ui/{version}/probe.js`, `harness.html`                                                                                                                                                                                                                                                                                     |
-| api    | [`src/api`](src/api/index.ts)                                             | `GET /api/v1/echo?msg=` (`probe:read`; msg 1 to 200 characters), `GET /api/v1/ticks?limit=&cursor=` (newest first; default limit 50, above 200 is clamped to 200), `POST /api/v1/emit` (`probe:write`; `exit` ends the part cleanly after its 202, the estate restarts it, local `up` does not: run it last), `openapi.json` |
-| mcp    | [`src/mcp`](src/mcp/index.ts)                                             | `POST /mcp`: `probe__echo` (`probe:read`; msg up to 200 characters, answers `pong <msg>`; [`probe.mcpc.json`](probe.mcpc.json))                                                                                                                                                                                              |
-| worker | [`src/worker`](src/worker/index.ts)                                       | job `tick`, every minute, one row in `ticks`                                                                                                                                                                                                                                                                                 |
-| store  | [`migrations/`](migrations), [`seeds/`](seeds)                            | postgres; the api image's `node dist/store/migrate.js` applies them                                                                                                                                                                                                                                                          |
-| cli    | [`src/cli`](src/cli/index.ts)                                             | `agentage ping [msg]` prints `pong`                                                                                                                                                                                                                                                                                          |
+A part is one folder of the extension that does one job. Each part exports only `create(ctx)`.
+The ui part exports a `widgets` map instead. The kit is the library
+[`@agentage/extension`](https://github.com/agentage/platform). It owns the servers, ports,
+`/health` and discovery. It also owns the response format, the store connection, the scheduler and
+the command line. The repo has no Dockerfile and no compose file: the kit's tool builds one image
+per part.
+
+| Part   | Serves                                                                       |
+| ------ | ---------------------------------------------------------------------------- |
+| pages  | `/`: `probe {version} · {commit}`                                            |
+| ui     | `/ui/{version}/probe.js`, `harness.html`                                     |
+| api    | `GET /api/v1/echo`, `GET /api/v1/ticks`, `POST /api/v1/emit`, `openapi.json` |
+| mcp    | `POST /mcp`: tool `probe__echo`                                              |
+| worker | job `tick`, one row in `ticks` per minute                                    |
+| store  | postgres                                                                     |
+| cli    | `agentage ping [msg]`                                                        |
+
+More: [docs/parts.md](docs/parts.md)
 
 ## Run it from a clone
 
-Needs Node 22 or newer, npm 10 or newer, Docker and git. Nothing needs a sign-in.
+You need Node 22 or newer, npm 10 or newer, Docker and git. Nothing needs a sign-in.
 
 ```bash
 git clone https://github.com/agentage/extension-probe && cd extension-probe
-npm ci                                   # the cli comes with it: npx agentage is the lockfile's
+npm ci                                   # installs the cli pinned in the lockfile
 npx agentage extension up                # last line: ready    7 parts healthy    <n> s
 # open http://localhost:4280/ui/<version>/harness.html (version from package.json), click ping
 curl -s localhost:4280/.well-known/agentage-extension.json
@@ -49,16 +57,10 @@ npx agentage extension down              # removes the containers, network and v
 Use `npx agentage` inside the clone. A global `agentage` can be older than the pinned one and lack
 `extension up`.
 
-- **7 parts** is what `up` reports. Five run as containers: pages, ui, api, mcp and worker.
-  `store` runs as postgres, and `cli` runs on your machine with no container.
-- `up` builds the five part images from the release recipe and writes `.agentage/record.json`
-  from the local image digests, so discovery is valid. It starts postgres, runs the migrate job,
-  the dev issuer (4281) and a Traefik gateway (4280) with the URL layout of a deployment. It waits
-  until every part is healthy.
-- Each checkout is its own compose project, so `down` in one never touches another. A second
-  checkout's `up` is refused while the first holds port 4280 or 4281.
-- On a kept volume (`down --keep-data`) the store line says
-  `1 migration already applied · 1 seed already applied`.
+`up` reports 7 parts. Five run as containers: pages, ui, api, mcp and worker. `store` is
+postgres. `cli` runs on your machine.
+
+More: [docs/develop.md](docs/develop.md#run-it-from-a-clone)
 
 ## Verify
 
@@ -73,28 +75,29 @@ npm run test:e2e                  # smoke and the widget tests
 ```
 
 CI then runs the gate of agentage/e2e against the same `up`. That repository is private, so only
-maintainers run the gate. With `up` running, from a checkout of agentage/e2e:
+maintainers run the gate.
 
-```bash
-npm ci && npx playwright install --with-deps chromium
-PROBE_DIR=/path/to/extension-probe npm run e2e -- probe gate local
-```
-
-`PROBE_DIR` lets the gate read `probe.mcpc.json`, `openapi.json` and the cli part from this
-checkout. Some gate tests skip locally: they need a deployed release.
-
-CI fails a gate that ran fewer tests than `MIN_EXECUTED` in `.github/workflows/ci.yml`, or none of
-the cli part. The job is bounded at 10 minutes. Dependabot runs get no secrets, so they skip the
-agentage/e2e checkout and the gate; `up` and `npm run test:e2e` still run.
+More: [docs/develop.md](docs/develop.md#verify)
 
 ## Release
 
-A `v*` tag equal to the `package.json` version runs `.github/workflows/release.yml`: it builds and
-pushes `ghcr.io/agentage/probe-{pages,ui,api,mcp,worker}:{version}`, attaches the build record with
-the five image digests to the GitHub release as `agentage-extension.json`, and publishes
-`@agentage/extension-probe` to npm with provenance. A version's images never change: a re-run keeps
-the released images and record and only retries npm, and a tag moved to another commit is refused
-(`agentage extension release`); a fix ships as a new version.
+A `v*` tag runs `.github/workflows/release.yml`. It builds and pushes
+`ghcr.io/agentage/probe-{pages,ui,api,mcp,worker}:{version}`. It attaches the build record with the
+five image digests to the GitHub release as `agentage-extension.json`. It publishes
+`@agentage/extension-probe` to npm with provenance.
 
-To release: bump `version` in `package.json`, run `npx agentage extension check --write` and
-`npm run format`, commit, tag `v<version>`.
+1. Bump `version` in `package.json`.
+2. Run `npx agentage extension check --write` and `npm run format`.
+3. Commit to `master`, then tag `v<version>`. The tag must equal the version.
+
+A released version never changes. A re-run keeps its images and record and only retries npm. `agentage extension release`
+refuses a tag moved to another commit. Ship a fix as a new version.
+
+## Documentation
+
+- [docs/parts.md](docs/parts.md): each part's routes, scopes and limits.
+- [docs/develop.md](docs/develop.md): what `up` does; the e2e gate.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
