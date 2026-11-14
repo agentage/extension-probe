@@ -5,6 +5,10 @@ permission a token must carry: `probe:read` or `probe:write`. The full contracts
 [`openapi.json`](../openapi.json) for the api part and [`probe.mcpc.json`](../probe.mcpc.json) for
 the mcp part.
 
+The kit is the library [`@agentage/extension`](https://github.com/agentage/platform). It owns the servers, ports,
+`/health` and discovery. It also owns the response format, the store connection, the scheduler and
+the command line.
+
 ## pages
 
 Source: [`src/pages`](../src/pages/index.ts).
