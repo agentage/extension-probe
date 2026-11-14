@@ -1,6 +1,6 @@
 # extension-probe
 
-The probe is a small agentage extension that has one of every part: a folder that does one job (pages, ui, api, mcp, worker, store, cli). Extension authors use it
+The probe is a small agentage extension that has one of every part kind: pages, ui, api, mcp, worker, store and cli. A part does one job. Extension authors use it
 as proof that the shape works. Maintainers test with it. To start your own
 extension, run `npx @agentage/cli@latest extension create <id>` or copy
 [agentage/extension-template](https://github.com/agentage/extension-template).
@@ -18,10 +18,10 @@ agentage ping                       # prints pong
 
 ## Parts
 
-A part is one folder of the extension that does one job. Each part exports only `create(ctx)`.
+A part is one unit of the extension that does one job. Most are `src/` folders; the store is `migrations/` and `seeds/`. Each part exports only `create(ctx)`.
 The ui part exports a `widgets` map instead. The kit,
 [`@agentage/extension`](https://github.com/agentage/platform), runs each part and builds one image
-per part, so this repo has no Dockerfile and no compose file.
+each for pages, ui, api, mcp and worker, so this repo has no Dockerfile or compose file.
 
 | Part   | Serves                                                                       |
 | ------ | ---------------------------------------------------------------------------- |
@@ -33,7 +33,7 @@ per part, so this repo has no Dockerfile and no compose file.
 | store  | postgres                                                                     |
 | cli    | `agentage ping [msg]`                                                        |
 
-More: [docs/parts.md](docs/parts.md), including what the kit owns.
+More: [docs/parts.md](docs/parts.md), with what the kit owns.
 
 ## Run it from a clone
 
